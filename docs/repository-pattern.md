@@ -55,45 +55,45 @@ Adapter（具体実装）
 
 /** データソースに依存しないドキュメント型 */
 interface Document {
-  id: string
-  [key: string]: unknown
+  id: string;
+  [key: string]: unknown;
 }
 
 /** クエリ条件 */
 interface QueryCondition {
-  field: string
-  operator: '==' | '!=' | '<' | '<=' | '>' | '>=' | 'in' | 'array-contains'
-  value: unknown
+  field: string;
+  operator: "==" | "!=" | "<" | "<=" | ">" | ">=" | "in" | "array-contains";
+  value: unknown;
 }
 
 /** ソート条件 */
 interface OrderByCondition {
-  field: string
-  direction: 'asc' | 'desc'
+  field: string;
+  direction: "asc" | "desc";
 }
 
 /** クエリオプション */
 interface QueryOptions {
-  where?: QueryCondition[]
-  orderBy?: OrderByCondition[]
-  limit?: number
-  offset?: number
+  where?: QueryCondition[];
+  orderBy?: OrderByCondition[];
+  limit?: number;
+  offset?: number;
 }
 
 /** トランザクション */
 interface Transaction {
-  get(path: string): Promise<Document | null>
-  set(path: string, data: Record<string, unknown>): void
-  update(path: string, data: Record<string, unknown>): void
-  delete(path: string): void
+  get(path: string): Promise<Document | null>;
+  set(path: string, data: Record<string, unknown>): void;
+  update(path: string, data: Record<string, unknown>): void;
+  delete(path: string): void;
 }
 
 /** バッチ操作 */
 interface Batch {
-  set(path: string, data: Record<string, unknown>): void
-  update(path: string, data: Record<string, unknown>): void
-  delete(path: string): void
-  commit(): Promise<void>
+  set(path: string, data: Record<string, unknown>): void;
+  update(path: string, data: Record<string, unknown>): void;
+  delete(path: string): void;
+  commit(): Promise<void>;
 }
 ```
 
@@ -102,41 +102,41 @@ interface Batch {
 ```typescript
 interface DataSource {
   // 基本的なCRUD操作
-  get(path: string): Promise<Document | null>
-  getAll(path: string, options?: QueryOptions): Promise<Document[]>
-  set(path: string, data: Record<string, unknown>): Promise<void>
-  update(path: string, data: Record<string, unknown>): Promise<void>
-  delete(path: string): Promise<void>
-  exists(path: string): Promise<boolean>
+  get(path: string): Promise<Document | null>;
+  getAll(path: string, options?: QueryOptions): Promise<Document[]>;
+  set(path: string, data: Record<string, unknown>): Promise<void>;
+  update(path: string, data: Record<string, unknown>): Promise<void>;
+  delete(path: string): Promise<void>;
+  exists(path: string): Promise<boolean>;
 
   // サブコレクション操作（Firestore向けだが汎用化）
   getSubcollection(
     parentPath: string,
     subcollectionName: string,
-    options?: QueryOptions
-  ): Promise<Document[]>
+    options?: QueryOptions,
+  ): Promise<Document[]>;
   getSubdocument(
     parentPath: string,
     subcollectionName: string,
-    docId: string
-  ): Promise<Document | null>
+    docId: string,
+  ): Promise<Document | null>;
   setSubdocument(
     parentPath: string,
     subcollectionName: string,
     docId: string,
-    data: Record<string, unknown>
-  ): Promise<void>
+    data: Record<string, unknown>,
+  ): Promise<void>;
 
   // トランザクション
   runTransaction<T>(
-    updateFunction: (transaction: Transaction) => Promise<T>
-  ): Promise<T>
+    updateFunction: (transaction: Transaction) => Promise<T>,
+  ): Promise<T>;
 
   // バッチ操作
-  batch(): Batch
+  batch(): Batch;
 
   // ID生成
-  generateId(): string
+  generateId(): string;
 }
 ```
 
@@ -149,45 +149,49 @@ abstract class BaseRepository<T> {
   constructor(protected readonly dataSource: DataSource) {}
 
   /** ドメインオブジェクト → ドキュメント変換（各Repositoryで実装） */
-  protected abstract toDocument(entity: T): Record<string, unknown>
+  protected abstract toDocument(entity: T): Record<string, unknown>;
 
   /** ドキュメント → ドメインオブジェクト変換（各Repositoryで実装） */
-  protected abstract fromDocument(doc: Document, ...args: string[]): T
+  protected abstract fromDocument(doc: Document, ...args: string[]): T;
 
   /** エラーハンドリング */
-  protected handleError(operation: string, entityName: string, error: unknown): never {
-    console.error(`Failed to ${operation} ${entityName}:`, error)
-    throw error
+  protected handleError(
+    operation: string,
+    entityName: string,
+    error: unknown,
+  ): never {
+    console.error(`Failed to ${operation} ${entityName}:`, error);
+    throw error;
   }
 
   /** Nullチェック */
   protected requireNotNull<U>(value: U | null | undefined, message: string): U {
     if (value === null || value === undefined) {
-      throw new Error(message)
+      throw new Error(message);
     }
-    return value
+    return value;
   }
 
   /** 現在時刻（テスト時にオーバーライド可能） */
   protected now(): Date {
-    return new Date()
+    return new Date();
   }
 
   /** Timestamp → Date変換 */
   protected toDate(value: unknown): Date {
     // Firestore Timestampの場合
-    if (value && typeof value === 'object' && 'toDate' in value) {
-      return (value as { toDate: () => Date }).toDate()
+    if (value && typeof value === "object" && "toDate" in value) {
+      return (value as { toDate: () => Date }).toDate();
     }
     // Dateの場合
     if (value instanceof Date) {
-      return value
+      return value;
     }
     // 文字列の場合
-    if (typeof value === 'string') {
-      return new Date(value)
+    if (typeof value === "string") {
+      return new Date(value);
     }
-    return new Date()
+    return new Date();
   }
 }
 ```
@@ -199,12 +203,12 @@ abstract class BaseRepository<T> {
 ```typescript
 // domain/users/user.repository.ts
 
-import { userSchema, type User } from '@project/domains'
-import { BaseRepository } from '../../core/base-repository'
-import { ValidationError } from '@project/domains'
+import { userSchema, type User } from "@project/domains";
+import { BaseRepository } from "../../core/base-repository";
+import { ValidationError } from "@project/domains";
 
 export class UserRepository extends BaseRepository<User> {
-  private readonly collectionPath = 'users'
+  private readonly collectionPath = "users";
 
   /** ドメインオブジェクト → ドキュメント */
   protected toDocument(user: User): Record<string, unknown> {
@@ -214,7 +218,7 @@ export class UserRepository extends BaseRepository<User> {
       role: user.role,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
-    }
+    };
   }
 
   /** ドキュメント → ドメインオブジェクト */
@@ -226,49 +230,51 @@ export class UserRepository extends BaseRepository<User> {
       role: doc.role,
       createdAt: this.toDate(doc.createdAt),
       updatedAt: this.toDate(doc.updatedAt),
-    }
+    };
 
     // Zodでバリデーション
-    const result = userSchema.safeParse(data)
+    const result = userSchema.safeParse(data);
     if (!result.success) {
-      throw new ValidationError(`Invalid user data: ${result.error.message}`)
+      throw new ValidationError(`Invalid user data: ${result.error.message}`);
     }
-    return result.data
+    return result.data;
   }
 
   /** IDで取得 */
   async findById(id: string): Promise<User | null> {
-    const doc = await this.dataSource.get(`${this.collectionPath}/${id}`)
-    if (!doc) return null
-    return this.fromDocument(doc)
+    const doc = await this.dataSource.get(`${this.collectionPath}/${id}`);
+    if (!doc) return null;
+    return this.fromDocument(doc);
   }
 
   /** メールで取得 */
   async findByEmail(email: string): Promise<User | null> {
     const docs = await this.dataSource.getAll(this.collectionPath, {
-      where: [{ field: 'email', operator: '==', value: email }],
+      where: [{ field: "email", operator: "==", value: email }],
       limit: 1,
-    })
-    if (docs.length === 0) return null
-    return this.fromDocument(docs[0])
+    });
+    if (docs.length === 0) return null;
+    return this.fromDocument(docs[0]);
   }
 
   /** 作成 */
-  async create(data: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): Promise<User> {
-    const id = this.dataSource.generateId()
-    const now = this.now()
+  async create(
+    data: Omit<User, "id" | "createdAt" | "updatedAt">,
+  ): Promise<User> {
+    const id = this.dataSource.generateId();
+    const now = this.now();
     const user: User = {
       ...data,
       id,
       createdAt: now,
       updatedAt: now,
-    }
+    };
 
     await this.dataSource.set(
       `${this.collectionPath}/${id}`,
-      this.toDocument(user)
-    )
-    return user
+      this.toDocument(user),
+    );
+    return user;
   }
 
   /** 更新 */
@@ -276,12 +282,12 @@ export class UserRepository extends BaseRepository<User> {
     await this.dataSource.update(`${this.collectionPath}/${id}`, {
       ...data,
       updatedAt: this.now(),
-    })
+    });
   }
 
   /** 削除 */
   async delete(id: string): Promise<void> {
-    await this.dataSource.delete(`${this.collectionPath}/${id}`)
+    await this.dataSource.delete(`${this.collectionPath}/${id}`);
   }
 }
 ```
@@ -293,55 +299,61 @@ export class UserRepository extends BaseRepository<User> {
 ```typescript
 // adapters/firestore-adapter.ts
 
-import type { Firestore, WhereFilterOp } from 'firebase-admin/firestore'
-import type { DataSource, Document, QueryOptions, Transaction, Batch } from '../core/types'
+import type { Firestore, WhereFilterOp } from "firebase-admin/firestore";
+import type {
+  DataSource,
+  Document,
+  QueryOptions,
+  Transaction,
+  Batch,
+} from "../core/types";
 
 export class FirestoreAdapter implements DataSource {
   constructor(private readonly firestore: Firestore) {}
 
   async get(path: string): Promise<Document | null> {
-    const doc = await this.firestore.doc(path).get()
-    if (!doc.exists) return null
-    return { id: doc.id, ...doc.data() }
+    const doc = await this.firestore.doc(path).get();
+    if (!doc.exists) return null;
+    return { id: doc.id, ...doc.data() };
   }
 
   async getAll(path: string, options?: QueryOptions): Promise<Document[]> {
-    let query: FirebaseFirestore.Query = this.firestore.collection(path)
+    let query: FirebaseFirestore.Query = this.firestore.collection(path);
 
     if (options?.where) {
       for (const condition of options.where) {
         query = query.where(
           condition.field,
           condition.operator as WhereFilterOp,
-          condition.value
-        )
+          condition.value,
+        );
       }
     }
 
     if (options?.orderBy) {
       for (const order of options.orderBy) {
-        query = query.orderBy(order.field, order.direction)
+        query = query.orderBy(order.field, order.direction);
       }
     }
 
     if (options?.limit) {
-      query = query.limit(options.limit)
+      query = query.limit(options.limit);
     }
 
-    const snapshot = await query.get()
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+    const snapshot = await query.get();
+    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
   }
 
   async set(path: string, data: Record<string, unknown>): Promise<void> {
-    await this.firestore.doc(path).set(data)
+    await this.firestore.doc(path).set(data);
   }
 
   async update(path: string, data: Record<string, unknown>): Promise<void> {
-    await this.firestore.doc(path).update(data)
+    await this.firestore.doc(path).update(data);
   }
 
   async delete(path: string): Promise<void> {
-    await this.firestore.doc(path).delete()
+    await this.firestore.doc(path).delete();
   }
 
   // ... 他のメソッド
@@ -353,62 +365,64 @@ export class FirestoreAdapter implements DataSource {
 ```typescript
 // adapters/mock-adapter.ts
 
-import type { DataSource, Document, QueryOptions } from '../core/types'
+import type { DataSource, Document, QueryOptions } from "../core/types";
 
 export class MockAdapter implements DataSource {
-  private store: Map<string, Record<string, unknown>> = new Map()
-  private idCounter = 0
+  private store: Map<string, Record<string, unknown>> = new Map();
+  private idCounter = 0;
 
   async get(path: string): Promise<Document | null> {
-    const data = this.store.get(path)
-    if (!data) return null
-    const id = path.split('/').pop()!
-    return { id, ...data }
+    const data = this.store.get(path);
+    if (!data) return null;
+    const id = path.split("/").pop()!;
+    return { id, ...data };
   }
 
   async getAll(path: string, options?: QueryOptions): Promise<Document[]> {
-    const results: Document[] = []
-    const prefix = path + '/'
+    const results: Document[] = [];
+    const prefix = path + "/";
 
     for (const [key, data] of this.store.entries()) {
       if (key.startsWith(prefix)) {
-        const id = key.split('/').pop()!
-        results.push({ id, ...data })
+        const id = key.split("/").pop()!;
+        results.push({ id, ...data });
       }
     }
 
     // where条件の適用
-    let filtered = results
+    let filtered = results;
     if (options?.where) {
       for (const condition of options.where) {
-        filtered = filtered.filter(doc => {
-          const value = doc[condition.field]
+        filtered = filtered.filter((doc) => {
+          const value = doc[condition.field];
           switch (condition.operator) {
-            case '==': return value === condition.value
-            case '!=': return value !== condition.value
+            case "==":
+              return value === condition.value;
+            case "!=":
+              return value !== condition.value;
             // ... 他の演算子
           }
-        })
+        });
       }
     }
 
-    return filtered
+    return filtered;
   }
 
   async set(path: string, data: Record<string, unknown>): Promise<void> {
-    this.store.set(path, data)
+    this.store.set(path, data);
   }
 
   // ... 他のメソッド
 
   generateId(): string {
-    return `mock-id-${++this.idCounter}`
+    return `mock-id-${++this.idCounter}`;
   }
 
   /** テスト用: ストアをクリア */
   clear(): void {
-    this.store.clear()
-    this.idCounter = 0
+    this.store.clear();
+    this.idCounter = 0;
   }
 }
 ```
@@ -418,9 +432,9 @@ export class MockAdapter implements DataSource {
 ```typescript
 // factory.ts
 
-import type { DataSource } from './core/types'
-import { UserRepository } from './domain/users'
-import { ProjectRepository } from './domain/projects'
+import type { DataSource } from "./core/types";
+import { UserRepository } from "./domain/users";
+import { ProjectRepository } from "./domain/projects";
 // ... 他のRepository
 
 export function createRepositories(dataSource: DataSource) {
@@ -428,10 +442,10 @@ export function createRepositories(dataSource: DataSource) {
     user: new UserRepository(dataSource),
     project: new ProjectRepository(dataSource),
     // ... 他のRepository
-  }
+  };
 }
 
-export type Repositories = ReturnType<typeof createRepositories>
+export type Repositories = ReturnType<typeof createRepositories>;
 ```
 
 ### アプリケーションでの使用
@@ -439,18 +453,18 @@ export type Repositories = ReturnType<typeof createRepositories>
 ```typescript
 // apps/web/app/server/repositories.ts
 
-import { getFirestore } from 'firebase-admin/firestore'
-import { FirestoreAdapter, createRepositories } from '@project/repositories'
+import { getFirestore } from "firebase-admin/firestore";
+import { FirestoreAdapter, createRepositories } from "@project/repositories";
 
-let repositories: Repositories | null = null
+let repositories: Repositories | null = null;
 
 export function getRepositories(): Repositories {
   if (!repositories) {
-    const firestore = getFirestore()
-    const adapter = new FirestoreAdapter(firestore)
-    repositories = createRepositories(adapter)
+    const firestore = getFirestore();
+    const adapter = new FirestoreAdapter(firestore);
+    repositories = createRepositories(adapter);
   }
-  return repositories
+  return repositories;
 }
 ```
 
@@ -459,53 +473,53 @@ export function getRepositories(): Repositories {
 ```typescript
 // domain/users/user.repository.test.ts
 
-import { describe, it, expect, beforeEach } from 'vitest'
-import { MockAdapter } from '../../adapters/mock-adapter'
-import { UserRepository } from './user.repository'
+import { describe, it, expect, beforeEach } from "vitest";
+import { MockAdapter } from "../../adapters/mock-adapter";
+import { UserRepository } from "./user.repository";
 
-describe('UserRepository', () => {
-  let adapter: MockAdapter
-  let repository: UserRepository
+describe("UserRepository", () => {
+  let adapter: MockAdapter;
+  let repository: UserRepository;
 
   beforeEach(() => {
-    adapter = new MockAdapter()
-    repository = new UserRepository(adapter)
-  })
+    adapter = new MockAdapter();
+    repository = new UserRepository(adapter);
+  });
 
-  describe('create', () => {
-    it('新規ユーザーを作成できる', async () => {
+  describe("create", () => {
+    it("新規ユーザーを作成できる", async () => {
       const user = await repository.create({
-        email: 'test@example.com',
-        name: 'Test User',
-        role: 'user',
-      })
+        email: "test@example.com",
+        name: "Test User",
+        role: "user",
+      });
 
-      expect(user.id).toBeDefined()
-      expect(user.email).toBe('test@example.com')
-      expect(user.createdAt).toBeInstanceOf(Date)
-    })
-  })
+      expect(user.id).toBeDefined();
+      expect(user.email).toBe("test@example.com");
+      expect(user.createdAt).toBeInstanceOf(Date);
+    });
+  });
 
-  describe('findById', () => {
-    it('存在するユーザーを取得できる', async () => {
+  describe("findById", () => {
+    it("存在するユーザーを取得できる", async () => {
       const created = await repository.create({
-        email: 'test@example.com',
-        name: 'Test User',
-        role: 'user',
-      })
+        email: "test@example.com",
+        name: "Test User",
+        role: "user",
+      });
 
-      const found = await repository.findById(created.id)
+      const found = await repository.findById(created.id);
 
-      expect(found).not.toBeNull()
-      expect(found!.email).toBe('test@example.com')
-    })
+      expect(found).not.toBeNull();
+      expect(found!.email).toBe("test@example.com");
+    });
 
-    it('存在しないユーザーはnullを返す', async () => {
-      const found = await repository.findById('non-existent-id')
-      expect(found).toBeNull()
-    })
-  })
-})
+    it("存在しないユーザーはnullを返す", async () => {
+      const found = await repository.findById("non-existent-id");
+      expect(found).toBeNull();
+    });
+  });
+});
 ```
 
 ## 設計のメリット
@@ -517,5 +531,6 @@ describe('UserRepository', () => {
 
 ## 関連ドキュメント
 
-- [アーキテクチャ](./architecture.md) - 全体設計
+- [設計思想](./architect.md) - 全体設計
 - [モノレポ構造](./monorepo-structure.md) - パッケージ構成
+- [技術選定サマリー](./tech-decisions.md) - 技術選定一覧

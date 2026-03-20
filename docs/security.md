@@ -13,16 +13,16 @@
 
 ```typescript
 // ロールベースアクセス制御の例
-type Permission = 'read' | 'write' | 'delete' | 'admin'
+type Permission = "read" | "write" | "delete" | "admin";
 
 const rolePermissions: Record<UserRole, Permission[]> = {
-  admin: ['read', 'write', 'delete', 'admin'],
-  editor: ['read', 'write'],
-  viewer: ['read'],
-}
+  admin: ["read", "write", "delete", "admin"],
+  editor: ["read", "write"],
+  viewer: ["read"],
+};
 
 function hasPermission(user: User, permission: Permission): boolean {
-  return rolePermissions[user.role].includes(permission)
+  return rolePermissions[user.role].includes(permission);
 }
 ```
 
@@ -45,31 +45,32 @@ function hasPermission(user: User, permission: Permission): boolean {
 const createUserSchema = z.object({
   email: z.string().email().max(254),
   name: z.string().min(1).max(100),
-  password: z.string()
+  password: z
+    .string()
     .min(8)
-    .regex(/[A-Z]/, 'Must contain uppercase letter')
-    .regex(/[a-z]/, 'Must contain lowercase letter')
-    .regex(/[0-9]/, 'Must contain number')
-    .regex(/[^A-Za-z0-9]/, 'Must contain special character'),
-})
+    .regex(/[A-Z]/, "Must contain uppercase letter")
+    .regex(/[a-z]/, "Must contain lowercase letter")
+    .regex(/[0-9]/, "Must contain number")
+    .regex(/[^A-Za-z0-9]/, "Must contain special character"),
+});
 
 // loader/actionでの使用
 export async function action({ request }: ActionFunctionArgs) {
-  const formData = await request.formData()
-  const rawData = Object.fromEntries(formData)
+  const formData = await request.formData();
+  const rawData = Object.fromEntries(formData);
 
   // バリデーション
-  const result = createUserSchema.safeParse(rawData)
+  const result = createUserSchema.safeParse(rawData);
   if (!result.success) {
     return json(
       { errors: result.error.flatten().fieldErrors },
-      { status: 400 }
-    )
+      { status: 400 },
+    );
   }
 
   // 検証済みデータを使用
-  const user = await createUser(result.data)
-  return redirect(`/users/${user.id}`)
+  const user = await createUser(result.data);
+  return redirect(`/users/${user.id}`);
 }
 ```
 
@@ -104,101 +105,102 @@ const docs = await dataSource.getAll('users', {
 ```typescript
 // セッション設定の推奨値
 const sessionConfig = {
-  name: '__session',
-  httpOnly: true,        // JavaScriptからアクセス不可
-  secure: true,          // HTTPS必須
-  sameSite: 'lax',       // CSRF対策
-  maxAge: 60 * 60 * 24 * 7,  // 7日間
-  path: '/',
-}
+  name: "__session",
+  httpOnly: true, // JavaScriptからアクセス不可
+  secure: true, // HTTPS必須
+  sameSite: "lax", // CSRF対策
+  maxAge: 60 * 60 * 24 * 7, // 7日間
+  path: "/",
+};
 
 // セッションの検証
 async function requireAuth(request: Request): Promise<User> {
-  const session = await getSession(request)
-  const userId = session.get('userId')
+  const session = await getSession(request);
+  const userId = session.get("userId");
 
   if (!userId) {
-    throw redirect('/login')
+    throw redirect("/login");
   }
 
-  const user = await userRepository.findById(userId)
+  const user = await userRepository.findById(userId);
   if (!user) {
-    throw redirect('/login')
+    throw redirect("/login");
   }
 
   // セッションハイジャック対策: IPアドレスやUser-Agentの検証（オプション）
-  const currentFingerprint = generateFingerprint(request)
-  if (session.get('fingerprint') !== currentFingerprint) {
-    await destroySession(session)
-    throw redirect('/login')
+  const currentFingerprint = generateFingerprint(request);
+  if (session.get("fingerprint") !== currentFingerprint) {
+    await destroySession(session);
+    throw redirect("/login");
   }
 
-  return user
+  return user;
 }
 ```
 
 ### パスワードセキュリティ
 
 ```typescript
-import { hash, verify } from '@node-rs/argon2'
+import { hash, verify } from "@node-rs/argon2";
 
 // パスワードハッシュ化（Argon2id推奨）
 async function hashPassword(password: string): Promise<string> {
   return hash(password, {
-    memoryCost: 65536,    // 64 MiB
-    timeCost: 3,          // 3 iterations
-    parallelism: 4,       // 4 parallel threads
-  })
+    memoryCost: 65536, // 64 MiB
+    timeCost: 3, // 3 iterations
+    parallelism: 4, // 4 parallel threads
+  });
 }
 
 // パスワード検証
 async function verifyPassword(
   password: string,
-  hashedPassword: string
+  hashedPassword: string,
 ): Promise<boolean> {
-  return verify(hashedPassword, password)
+  return verify(hashedPassword, password);
 }
 
 // パスワード強度ポリシー
-const passwordPolicy = z.string()
-  .min(8, 'Password must be at least 8 characters')
-  .max(128, 'Password must be at most 128 characters')
+const passwordPolicy = z
+  .string()
+  .min(8, "Password must be at least 8 characters")
+  .max(128, "Password must be at most 128 characters")
   .refine(
     (password) => /[A-Z]/.test(password),
-    'Password must contain at least one uppercase letter'
+    "Password must contain at least one uppercase letter",
   )
   .refine(
     (password) => /[a-z]/.test(password),
-    'Password must contain at least one lowercase letter'
+    "Password must contain at least one lowercase letter",
   )
   .refine(
     (password) => /[0-9]/.test(password),
-    'Password must contain at least one number'
+    "Password must contain at least one number",
   )
   .refine(
     (password) => /[^A-Za-z0-9]/.test(password),
-    'Password must contain at least one special character'
-  )
+    "Password must contain at least one special character",
+  );
 ```
 
 ### JWT（使用する場合）
 
 ```typescript
-import { SignJWT, jwtVerify } from 'jose'
+import { SignJWT, jwtVerify } from "jose";
 
-const secret = new TextEncoder().encode(process.env.JWT_SECRET)
-const issuer = 'my-project'
-const audience = 'my-project-app'
+const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+const issuer = "my-project";
+const audience = "my-project-app";
 
 // トークン生成
 async function generateToken(userId: string): Promise<string> {
   return new SignJWT({ sub: userId })
-    .setProtectedHeader({ alg: 'HS256' })
+    .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setIssuer(issuer)
     .setAudience(audience)
-    .setExpirationTime('1h')  // 短い有効期限
-    .sign(secret)
+    .setExpirationTime("1h") // 短い有効期限
+    .sign(secret);
 }
 
 // トークン検証
@@ -206,13 +208,13 @@ async function verifyToken(token: string): Promise<string> {
   const { payload } = await jwtVerify(token, secret, {
     issuer,
     audience,
-  })
+  });
 
   if (!payload.sub) {
-    throw new AuthenticationError('Invalid token')
+    throw new AuthenticationError("Invalid token");
   }
 
-  return payload.sub
+  return payload.sub;
 }
 
 // リフレッシュトークンパターン
@@ -230,18 +232,18 @@ async function requireRole(
   request: Request,
   ...roles: UserRole[]
 ): Promise<User> {
-  const user = await requireAuth(request)
+  const user = await requireAuth(request);
 
   if (!roles.includes(user.role)) {
-    throw new Response('Forbidden', { status: 403 })
+    throw new Response("Forbidden", { status: 403 });
   }
 
-  return user
+  return user;
 }
 
 // loader での使用例
 export async function loader({ request }: LoaderFunctionArgs) {
-  const user = await requireRole(request, 'admin', 'editor')
+  const user = await requireRole(request, "admin", "editor");
   // ...
 }
 ```
@@ -251,43 +253,43 @@ export async function loader({ request }: LoaderFunctionArgs) {
 ```typescript
 // より細かいアクセス制御
 interface AccessContext {
-  user: User
-  resource: Resource
-  action: 'read' | 'write' | 'delete'
+  user: User;
+  resource: Resource;
+  action: "read" | "write" | "delete";
 }
 
 function canAccess(context: AccessContext): boolean {
-  const { user, resource, action } = context
+  const { user, resource, action } = context;
 
   // 管理者は全操作可能
-  if (user.role === 'admin') return true
+  if (user.role === "admin") return true;
 
   // リソース所有者のチェック
   if (resource.ownerId === user.id) {
-    return ['read', 'write', 'delete'].includes(action)
+    return ["read", "write", "delete"].includes(action);
   }
 
   // チームメンバーの読み取り権限
   if (resource.teamId && user.teamIds.includes(resource.teamId)) {
-    return action === 'read'
+    return action === "read";
   }
 
-  return false
+  return false;
 }
 
 // リソースアクセス時のチェック
 async function getResource(id: string, user: User): Promise<Resource> {
-  const resource = await resourceRepository.findById(id)
+  const resource = await resourceRepository.findById(id);
 
   if (!resource) {
-    throw new NotFoundError('Resource', id)
+    throw new NotFoundError("Resource", id);
   }
 
-  if (!canAccess({ user, resource, action: 'read' })) {
-    throw new Response('Forbidden', { status: 403 })
+  if (!canAccess({ user, resource, action: "read" })) {
+    throw new Response("Forbidden", { status: 403 });
   }
 
-  return resource
+  return resource;
 }
 ```
 
@@ -318,18 +320,18 @@ function SafeContent({ html }: { html: string }) {
 // root.tsx または middleware
 export function headers() {
   return {
-    'Content-Security-Policy': [
+    "Content-Security-Policy": [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline'",  // インラインスクリプト（必要な場合のみ）
-      "style-src 'self' 'unsafe-inline'",   // Tailwind CSS用
+      "script-src 'self' 'unsafe-inline'", // インラインスクリプト（必要な場合のみ）
+      "style-src 'self' 'unsafe-inline'", // Tailwind CSS用
       "img-src 'self' data: https:",
       "font-src 'self'",
       "connect-src 'self' https://api.example.com",
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",
-    ].join('; '),
-  }
+    ].join("; "),
+  };
 }
 ```
 
@@ -341,9 +343,9 @@ export function headers() {
 // セッションCookieにSameSite属性を設定
 const cookieOptions = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'lax' as const,  // 通常のリクエストでCookie送信を許可
-}
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "lax" as const, // 通常のリクエストでCookie送信を許可
+};
 ```
 
 ### CSRFトークン（必要な場合）
@@ -390,23 +392,21 @@ export async function action({ request }: ActionFunctionArgs) {
 export function headers() {
   return {
     // XSS保護
-    'X-Content-Type-Options': 'nosniff',
-    'X-Frame-Options': 'DENY',
-    'X-XSS-Protection': '1; mode=block',
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "X-XSS-Protection": "1; mode=block",
 
     // HTTPS強制
-    'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+    "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
 
     // リファラー制御
-    'Referrer-Policy': 'strict-origin-when-cross-origin',
+    "Referrer-Policy": "strict-origin-when-cross-origin",
 
     // 機能ポリシー
-    'Permissions-Policy': [
-      'camera=()',
-      'microphone=()',
-      'geolocation=()',
-    ].join(', '),
-  }
+    "Permissions-Policy": ["camera=()", "microphone=()", "geolocation=()"].join(
+      ", ",
+    ),
+  };
 }
 ```
 
@@ -417,12 +417,12 @@ export function headers() {
 ```typescript
 // .env は .gitignore に含める
 // Bad: ハードコーディング
-const apiKey = 'sk-1234567890abcdef'
+const apiKey = "sk-1234567890abcdef";
 
 // Good: 環境変数から取得
-const apiKey = process.env.API_KEY
+const apiKey = process.env.API_KEY;
 if (!apiKey) {
-  throw new Error('API_KEY environment variable is required')
+  throw new Error("API_KEY environment variable is required");
 }
 
 // 型安全な環境変数（Zodで検証）
@@ -430,38 +430,40 @@ const envSchema = z.object({
   DATABASE_URL: z.string().url(),
   JWT_SECRET: z.string().min(32),
   API_KEY: z.string(),
-  NODE_ENV: z.enum(['development', 'production', 'test']),
-})
+  NODE_ENV: z.enum(["development", "production", "test"]),
+});
 
-export const env = envSchema.parse(process.env)
+export const env = envSchema.parse(process.env);
 ```
 
 ### ログにおける機密情報
 
 ```typescript
 // Bad: 機密情報をログに出力
-console.log('User login:', { email, password })
+console.log("User login:", { email, password });
 
 // Good: 機密情報をマスク
-console.log('User login:', { email, password: '***' })
+console.log("User login:", { email, password: "***" });
 
 // ログユーティリティでの自動マスク
-const sensitiveFields = ['password', 'token', 'apiKey', 'secret']
+const sensitiveFields = ["password", "token", "apiKey", "secret"];
 
 function sanitizeForLogging(obj: object): object {
   return Object.fromEntries(
     Object.entries(obj).map(([key, value]) => {
-      if (sensitiveFields.some(field =>
-        key.toLowerCase().includes(field.toLowerCase())
-      )) {
-        return [key, '***REDACTED***']
+      if (
+        sensitiveFields.some((field) =>
+          key.toLowerCase().includes(field.toLowerCase()),
+        )
+      ) {
+        return [key, "***REDACTED***"];
       }
-      if (typeof value === 'object' && value !== null) {
-        return [key, sanitizeForLogging(value)]
+      if (typeof value === "object" && value !== null) {
+        return [key, sanitizeForLogging(value)];
       }
-      return [key, value]
-    })
-  )
+      return [key, value];
+    }),
+  );
 }
 ```
 
@@ -538,13 +540,13 @@ updates:
 ```typescript
 // セキュリティログの出力例
 logger.security({
-  event: 'suspicious_activity',
+  event: "suspicious_activity",
   userId: user.id,
-  ipAddress: request.headers.get('x-forwarded-for'),
-  userAgent: request.headers.get('user-agent'),
-  details: 'Multiple failed login attempts',
+  ipAddress: request.headers.get("x-forwarded-for"),
+  userAgent: request.headers.get("user-agent"),
+  details: "Multiple failed login attempts",
   timestamp: new Date().toISOString(),
-})
+});
 ```
 
 ## 関連ドキュメント

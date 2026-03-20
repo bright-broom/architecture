@@ -58,9 +58,7 @@ packages/domains/
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "**/*.test.ts"],
-  "references": [
-    { "path": "../utils/tsconfig.build.json" }
-  ]
+  "references": [{ "path": "../utils/tsconfig.build.json" }]
 }
 ```
 
@@ -89,18 +87,19 @@ packages/domains/
 ### tsup.config.ts
 
 ```typescript
-import { defineConfig } from 'tsup'
+import { defineConfig } from "tsup";
 
 export default defineConfig({
-  entry: ['src/index.ts'],
-  format: ['cjs', 'esm'],
-  dts: false,           // tscで生成した型定義を使用
+  entry: ["src/index.ts"],
+  format: ["cjs", "esm"],
+  dts: false, // tscで生成した型定義を使用
   sourcemap: true,
-  clean: false,         // distを削除しない（型定義を保持）
-})
+  clean: false, // distを削除しない（型定義を保持）
+});
 ```
 
 **ポイント**:
+
 - `dts: false` - tsupの型定義生成を無効化（tscに任せる）
 - `clean: false` - tscが先に出力した.d.tsを削除しない
 - `format: ['cjs', 'esm']` - CommonJSとESModules両対応
@@ -120,29 +119,30 @@ export default defineConfig({
 ### postinstall.mts
 
 ```typescript
-import concurrently from 'concurrently'
+import concurrently from "concurrently";
 
 // Step 1: 依存のないパッケージから先にビルド
 await concurrently([
-  { command: 'npm:build:types -w @project/utils', name: 'utils' },
-]).result
+  { command: "npm:build:types -w @project/utils", name: "utils" },
+]).result;
 
 // Step 2: utilsに依存するパッケージ
 await concurrently([
-  { command: 'npm:build:types -w @project/domains', name: 'domains' },
-]).result
+  { command: "npm:build:types -w @project/domains", name: "domains" },
+]).result;
 
 // Step 3: 並列ビルド可能なパッケージ
 await concurrently([
-  { command: 'npm:build:js -w @project/utils', name: 'utils' },
-  { command: 'npm:build:js -w @project/domains', name: 'domains' },
-  { command: 'npm:build:types -w @project/ui-core', name: 'ui-core' },
-]).result
+  { command: "npm:build:js -w @project/utils", name: "utils" },
+  { command: "npm:build:js -w @project/domains", name: "domains" },
+  { command: "npm:build:types -w @project/ui-core", name: "ui-core" },
+]).result;
 
 // ... 続く
 ```
 
 **設計意図**:
+
 - 依存関係を考慮した順序でビルド
 - 可能な限り並列実行で高速化
 - `concurrently`でログを見やすく整理
@@ -211,20 +211,21 @@ packages/domains/dist/
 
 ```typescript
 // scripts/typecheck.mts
-import { execSync } from 'child_process'
+import { execSync } from "child_process";
 
 // React Routerの型生成（appsのみ）
-execSync('npx react-router typegen', { cwd: 'apps/web' })
+execSync("npx react-router typegen", { cwd: "apps/web" });
 
 // Project Referencesで全パッケージをチェック
-execSync('tsc -b')
+execSync("tsc -b");
 
 // 各パッケージのtsconfig.jsonでも検証
-execSync('tsc --project packages/domains/tsconfig.json --noEmit')
+execSync("tsc --project packages/domains/tsconfig.json --noEmit");
 // ...
 ```
 
 **なぜ2段階か**:
+
 - `tsc -b`はビルド用tsconfigで検証
 - 開発用tsconfigには異なる設定がある場合があるため、両方でチェック
 
@@ -233,18 +234,19 @@ execSync('tsc --project packages/domains/tsconfig.json --noEmit')
 ### dev.mts
 
 ```typescript
-import concurrently from 'concurrently'
+import concurrently from "concurrently";
 
 // 全パッケージのwatchモードを並列起動
 await concurrently([
-  { command: 'npm:dev -w @project/domains', name: 'domains' },
-  { command: 'npm:dev -w @project/ui-core', name: 'ui-core' },
-  { command: 'npm:dev -w @project/web', name: 'web' },
+  { command: "npm:dev -w @project/domains", name: "domains" },
+  { command: "npm:dev -w @project/ui-core", name: "ui-core" },
+  { command: "npm:dev -w @project/web", name: "web" },
   // ...
-])
+]);
 ```
 
 各パッケージのdev:
+
 - `tsup --watch` でJSを監視
 - アプリは`react-router dev`で起動
 
@@ -269,4 +271,5 @@ npm install
 ## 関連ドキュメント
 
 - [モノレポ構造](./monorepo-structure.md) - パッケージ構成
-- [アーキテクチャ](./architecture.md) - 全体設計
+- [設計思想](./architect.md) - 全体設計
+- [技術選定サマリー](./tech-decisions.md) - 技術選定一覧

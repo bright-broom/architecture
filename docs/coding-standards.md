@@ -13,10 +13,10 @@ Google TypeScript Style Guide、Microsoft TypeScript Coding Guidelinesを参考�
 
 ```typescript
 // Bad: 意図が不明確
-const d = new Date().getTime() - u.c.getTime()
+const d = new Date().getTime() - u.c.getTime();
 
 // Good: 変数名で意図を表現
-const daysSinceCreation = differenceInDays(new Date(), user.createdAt)
+const daysSinceCreation = differenceInDays(new Date(), user.createdAt);
 ```
 
 ### 2. 一貫性（Consistency）
@@ -47,33 +47,33 @@ function createUser(data: CreateUserInput): User { ... }
 
 ### 変数・関数
 
-| 種別 | 規則 | 例 |
-|------|------|-----|
-| 変数 | camelCase | `userName`, `isActive` |
-| 定数 | SCREAMING_SNAKE_CASE | `MAX_RETRY_COUNT`, `API_BASE_URL` |
-| 関数 | camelCase, 動詞始まり | `getUser`, `calculateTotal`, `validateEmail` |
-| ブール変数 | is/has/can/should始まり | `isLoading`, `hasError`, `canEdit` |
-| イベントハンドラ | handle/on始まり | `handleClick`, `onSubmit` |
+| 種別             | 規則                    | 例                                           |
+| ---------------- | ----------------------- | -------------------------------------------- |
+| 変数             | camelCase               | `userName`, `isActive`                       |
+| 定数             | SCREAMING_SNAKE_CASE    | `MAX_RETRY_COUNT`, `API_BASE_URL`            |
+| 関数             | camelCase, 動詞始まり   | `getUser`, `calculateTotal`, `validateEmail` |
+| ブール変数       | is/has/can/should始まり | `isLoading`, `hasError`, `canEdit`           |
+| イベントハンドラ | handle/on始まり         | `handleClick`, `onSubmit`                    |
 
 ### 型・クラス・インターフェース
 
-| 種別 | 規則 | 例 |
-|------|------|-----|
-| 型 | PascalCase | `User`, `OrderStatus` |
-| インターフェース | PascalCase（I接頭辞なし） | `DataSource`, `Repository` |
-| クラス | PascalCase | `UserRepository`, `FirestoreAdapter` |
-| Enum | PascalCase（値はSCREAMING_SNAKE_CASE） | `UserRole.ADMIN` |
-| ジェネリクス | T, U, V または意味のある名前 | `T`, `TEntity`, `TResult` |
+| 種別             | 規則                                   | 例                                   |
+| ---------------- | -------------------------------------- | ------------------------------------ |
+| 型               | PascalCase                             | `User`, `OrderStatus`                |
+| インターフェース | PascalCase（I接頭辞なし）              | `DataSource`, `Repository`           |
+| クラス           | PascalCase                             | `UserRepository`, `FirestoreAdapter` |
+| Enum             | PascalCase（値はSCREAMING_SNAKE_CASE） | `UserRole.ADMIN`                     |
+| ジェネリクス     | T, U, V または意味のある名前           | `T`, `TEntity`, `TResult`            |
 
 ### ファイル・ディレクトリ
 
-| 種別 | 規則 | 例 |
-|------|------|-----|
-| コンポーネント | kebab-case | `user-card.tsx`, `button.tsx` |
-| ユーティリティ | kebab-case | `date-utils.ts`, `generate-id.ts` |
-| 型定義 | kebab-case または `.types.ts` | `user.ts`, `api.types.ts` |
-| テスト | `.test.ts` 接尾辞 | `user.repository.test.ts` |
-| ディレクトリ | kebab-case | `user-management/`, `ui-core/` |
+| 種別           | 規則                          | 例                                |
+| -------------- | ----------------------------- | --------------------------------- |
+| コンポーネント | kebab-case                    | `user-card.tsx`, `button.tsx`     |
+| ユーティリティ | kebab-case                    | `date-utils.ts`, `generate-id.ts` |
+| 型定義         | kebab-case または `.types.ts` | `user.ts`, `api.types.ts`         |
+| テスト         | `.test.ts` 接尾辞             | `user.repository.test.ts`         |
+| ディレクトリ   | kebab-case                    | `user-management/`, `ui-core/`    |
 
 ## TypeScript規約
 
@@ -126,8 +126,8 @@ const userSchema = z.object({
 
 ```typescript
 // 1. type import を使用
-import type { User, UserRole } from '@project/domains'
-import { userSchema } from '@project/domains'
+import type { User, UserRole } from "@project/domains";
+import { userSchema } from "@project/domains";
 
 // 2. インポート順序（ESLint auto-fix対応）
 // - Node.js built-in
@@ -136,16 +136,16 @@ import { userSchema } from '@project/domains'
 // - Relative imports
 // - Type imports
 
-import { readFile } from 'node:fs/promises'
+import { readFile } from "node:fs/promises";
 
-import { z } from 'zod'
-import React from 'react'
+import { z } from "zod";
+import React from "react";
 
-import { generateId } from '@project/utils'
-import type { User } from '@project/domains'
+import { generateId } from "@project/utils";
+import type { User } from "@project/domains";
 
-import { Button } from '../components/button'
-import type { ButtonProps } from '../components/button'
+import { Button } from "../components/button";
+import type { ButtonProps } from "../components/button";
 ```
 
 ### Null/Undefined処理
@@ -153,28 +153,28 @@ import type { ButtonProps } from '../components/button'
 ```typescript
 // 1. Nullish Coalescing (??) を使用
 // Bad
-const name = user.name || 'Anonymous'  // 空文字列もフォールバック
+const name = user.name || "Anonymous"; // 空文字列もフォールバック
 
 // Good
-const name = user.name ?? 'Anonymous'  // null/undefinedのみフォールバック
+const name = user.name ?? "Anonymous"; // null/undefinedのみフォールバック
 
 // 2. Optional Chaining (?.) を使用
 // Bad
-const city = user && user.address && user.address.city
+const city = user && user.address && user.address.city;
 
 // Good
-const city = user?.address?.city
+const city = user?.address?.city;
 
 // 3. Non-null assertion (!) は避ける
 // Bad
-const id = user!.id
+const id = user!.id;
 
 // Good
 if (user) {
-  const id = user.id
+  const id = user.id;
 }
 // または
-const id = user?.id ?? throwError('User is required')
+const id = user?.id ?? throwError("User is required");
 ```
 
 ### 非同期処理
@@ -184,39 +184,39 @@ const id = user?.id ?? throwError('User is required')
 // Bad
 function fetchUser(id: string): Promise<User> {
   return fetch(`/api/users/${id}`)
-    .then(res => res.json())
-    .then(data => data.user)
+    .then((res) => res.json())
+    .then((data) => data.user);
 }
 
 // Good
 async function fetchUser(id: string): Promise<User> {
-  const res = await fetch(`/api/users/${id}`)
-  const data = await res.json()
-  return data.user
+  const res = await fetch(`/api/users/${id}`);
+  const data = await res.json();
+  return data.user;
 }
 
 // 2. 並列実行可能な処理は Promise.all を使用
 // Bad（逐次実行）
-const user = await fetchUser(userId)
-const orders = await fetchOrders(userId)
+const user = await fetchUser(userId);
+const orders = await fetchOrders(userId);
 
 // Good（並列実行）
 const [user, orders] = await Promise.all([
   fetchUser(userId),
   fetchOrders(userId),
-])
+]);
 
 // 3. エラーハンドリングを明示
 async function fetchUser(id: string): Promise<User> {
   try {
-    const res = await fetch(`/api/users/${id}`)
+    const res = await fetch(`/api/users/${id}`);
     if (!res.ok) {
-      throw new ApiError(`Failed to fetch user: ${res.status}`)
+      throw new ApiError(`Failed to fetch user: ${res.status}`);
     }
-    return await res.json()
+    return await res.json();
   } catch (error) {
-    if (error instanceof ApiError) throw error
-    throw new ApiError('Network error', { cause: error })
+    if (error instanceof ApiError) throw error;
+    throw new ApiError("Network error", { cause: error });
   }
 }
 ```
@@ -269,27 +269,27 @@ Button.displayName = 'Button'
 ```typescript
 // 1. カスタムフックは use 接頭辞
 function useUser(id: string): UseUserResult {
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
   // ...
-  return { user, loading, error }
+  return { user, loading, error };
 }
 
 // 2. 依存配列を正確に
 useEffect(() => {
-  fetchUser(userId)
-}, [userId])  // 必要な依存をすべて含める
+  fetchUser(userId);
+}, [userId]); // 必要な依存をすべて含める
 
 // 3. useCallback/useMemo は必要な場合のみ
 // 不要なメモ化は避ける
 const handleClick = () => {
   // シンプルな処理はメモ化不要
-}
+};
 
 // 必要な場合のみメモ化
 const expensiveValue = useMemo(() => {
-  return calculateExpensiveValue(items)
-}, [items])
+  return calculateExpensiveValue(items);
+}, [items]);
 ```
 
 ### イベントハンドリング
@@ -343,11 +343,11 @@ async function createUser(data: CreateUserInput): Promise<User> {
 // 1. なぜそうしているかを説明（何をしているかではなく）
 // Bad
 // ユーザーを取得
-const user = await fetchUser(id)
+const user = await fetchUser(id);
 
 // Good
 // キャッシュを使用して API コールを削減
-const user = await cachedFetchUser(id)
+const user = await cachedFetchUser(id);
 
 // 2. TODO/FIXME は issue 番号と共に
 // TODO(#123): パフォーマンス改善のためキャッシュを実装
@@ -356,7 +356,7 @@ const user = await cachedFetchUser(id)
 // 3. 複雑なロジックには説明を
 // RFC 5322 に準拠したメールアドレスバリデーション
 // 参照: https://tools.ietf.org/html/rfc5322#section-3.4.1
-const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 ```
 
 ## ファイル構造
@@ -398,23 +398,26 @@ export default [
   {
     rules: {
       // TypeScript
-      '@typescript-eslint/no-explicit-any': 'error',
-      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-      '@typescript-eslint/consistent-type-imports': 'error',
-      '@typescript-eslint/no-non-null-assertion': 'error',
+      "@typescript-eslint/no-explicit-any": "error",
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_" },
+      ],
+      "@typescript-eslint/consistent-type-imports": "error",
+      "@typescript-eslint/no-non-null-assertion": "error",
 
       // 一般
-      'no-console': ['warn', { allow: ['warn', 'error'] }],
-      'prefer-const': 'error',
-      'no-var': 'error',
+      "no-console": ["warn", { allow: ["warn", "error"] }],
+      "prefer-const": "error",
+      "no-var": "error",
 
       // React
-      'react/prop-types': 'off',  // TypeScriptで代替
-      'react-hooks/rules-of-hooks': 'error',
-      'react-hooks/exhaustive-deps': 'warn',
+      "react/prop-types": "off", // TypeScriptで代替
+      "react-hooks/rules-of-hooks": "error",
+      "react-hooks/exhaustive-deps": "warn",
     },
   },
-]
+];
 ```
 
 ### Prettier設定

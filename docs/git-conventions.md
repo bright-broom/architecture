@@ -18,14 +18,14 @@ feature     ●─●         ●─●         ●─●
 
 ### ブランチの種類
 
-| ブランチ | 用途 | 命名規則 |
-|----------|------|----------|
-| main | 本番リリース可能な状態 | `main` |
-| feature | 機能開発 | `feature/issue-123-add-login` |
-| fix | バグ修正 | `fix/issue-456-fix-validation` |
-| hotfix | 緊急修正 | `hotfix/issue-789-security-patch` |
-| chore | 雑務（依存更新等） | `chore/update-dependencies` |
-| docs | ドキュメント | `docs/add-api-documentation` |
+| ブランチ | 用途                   | 命名規則                          |
+| -------- | ---------------------- | --------------------------------- |
+| main     | 本番リリース可能な状態 | `main`                            |
+| feature  | 機能開発               | `feature/issue-123-add-login`     |
+| fix      | バグ修正               | `fix/issue-456-fix-validation`    |
+| hotfix   | 緊急修正               | `hotfix/issue-789-security-patch` |
+| chore    | 雑務（依存更新等）     | `chore/update-dependencies`       |
+| docs     | ドキュメント           | `docs/add-api-documentation`      |
 
 ### ブランチ命名規則
 
@@ -57,19 +57,19 @@ my-changes              # 説明不足
 
 ### Type一覧
 
-| Type | 説明 | 例 |
-|------|------|-----|
-| feat | 新機能 | `feat(auth): add login with Google` |
-| fix | バグ修正 | `fix(form): fix validation error display` |
-| docs | ドキュメント | `docs: update API documentation` |
-| style | コードスタイル | `style: format with prettier` |
-| refactor | リファクタリング | `refactor(user): simplify user service` |
-| perf | パフォーマンス改善 | `perf(query): optimize database query` |
-| test | テスト | `test(user): add unit tests for user service` |
-| build | ビルド関連 | `build: update tsconfig settings` |
-| ci | CI/CD | `ci: add deployment workflow` |
-| chore | 雑務 | `chore: update dependencies` |
-| revert | リバート | `revert: revert "feat(auth): add login"` |
+| Type     | 説明               | 例                                            |
+| -------- | ------------------ | --------------------------------------------- |
+| feat     | 新機能             | `feat(auth): add login with Google`           |
+| fix      | バグ修正           | `fix(form): fix validation error display`     |
+| docs     | ドキュメント       | `docs: update API documentation`              |
+| style    | コードスタイル     | `style: format with prettier`                 |
+| refactor | リファクタリング   | `refactor(user): simplify user service`       |
+| perf     | パフォーマンス改善 | `perf(query): optimize database query`        |
+| test     | テスト             | `test(user): add unit tests for user service` |
+| build    | ビルド関連         | `build: update tsconfig settings`             |
+| ci       | CI/CD              | `ci: add deployment workflow`                 |
+| chore    | 雑務               | `chore: update dependencies`                  |
+| revert   | リバート           | `revert: revert "feat(auth): add login"`      |
 
 ### コミットメッセージ例
 
@@ -106,9 +106,11 @@ Migration: Update client code to use `userId` field.
 
 ```markdown
 ## 概要
+
 <!-- 変更内容を簡潔に説明 -->
 
 ## 変更種別
+
 - [ ] 新機能
 - [ ] バグ修正
 - [ ] リファクタリング
@@ -116,25 +118,32 @@ Migration: Update client code to use `userId` field.
 - [ ] その他
 
 ## 関連Issue
+
 Closes #123
 
 ## 変更内容
+
 <!-- 詳細な変更内容をリストで記載 -->
+
 - ユーザー認証機能を追加
 - ログインフォームを実装
 - セッション管理を追加
 
 ## テスト方法
+
 <!-- テスト手順を記載 -->
+
 1. ログインページにアクセス
 2. メールアドレスとパスワードを入力
 3. ログインボタンをクリック
 4. ダッシュボードに遷移することを確認
 
 ## スクリーンショット
+
 <!-- UI変更がある場合はスクリーンショットを添付 -->
 
 ## チェックリスト
+
 - [ ] テストを追加/更新した
 - [ ] ドキュメントを更新した
 - [ ] セルフレビューを行った
@@ -145,10 +154,11 @@ Closes #123
 
 ```markdown
 <!-- .github/pull_request_template.md -->
+
 ## 概要
 
-
 ## 変更種別
+
 - [ ] feat: 新機能
 - [ ] fix: バグ修正
 - [ ] refactor: リファクタリング
@@ -157,14 +167,17 @@ Closes #123
 - [ ] chore: その他
 
 ## 関連Issue
+
 Closes #
 
 ## 変更内容
+
 -
 -
 -
 
 ## チェックリスト
+
 - [ ] 型チェックが通る (`npm run typecheck`)
 - [ ] リントが通る (`npm run lint`)
 - [ ] テストが通る (`npm run test`)
@@ -187,16 +200,20 @@ Closes #
 
 ```markdown
 # 必須の修正
+
 [must] ここはセキュリティ上の問題があります。
 ユーザー入力を直接使用せず、サニタイズしてください。
 
 # 提案（任意）
+
 [nit] ここは `const` の方が適切かもしれません。
 
 # 質問
+
 [question] このロジックの意図を教えてください。
 
 # 称賛
+
 [praise] このリファクタリングはとても良いですね！
 ```
 

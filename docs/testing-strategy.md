@@ -21,11 +21,11 @@
               └───────────────────────┘
 ```
 
-| レベル | 対象 | 実行速度 | カバレッジ目標 |
-|--------|------|----------|----------------|
-| Unit | 関数、クラス | 高速 | 80%+ |
-| Integration | API、Repository | 中速 | 70%+ |
-| E2E | ユーザーフロー | 低速 | 主要パス |
+| レベル      | 対象            | 実行速度 | カバレッジ目標 |
+| ----------- | --------------- | -------- | -------------- |
+| Unit        | 関数、クラス    | 高速     | 80%+           |
+| Integration | API、Repository | 中速     | 70%+           |
+| E2E         | ユーザーフロー  | 低速     | 主要パス       |
 
 ## ディレクトリ構成
 
@@ -67,26 +67,26 @@ apps/
 
 ```typescript
 // vitest.config.ts
-import { defineConfig } from 'vitest/config'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from "vitest/config";
+import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [react()],
   test: {
     globals: true,
-    environment: 'jsdom',
-    setupFiles: ['./test/setup.ts'],
-    include: ['**/*.test.{ts,tsx}'],
-    exclude: ['**/node_modules/**', '**/dist/**', '**/e2e/**'],
+    environment: "jsdom",
+    setupFiles: ["./test/setup.ts"],
+    include: ["**/*.test.{ts,tsx}"],
+    exclude: ["**/node_modules/**", "**/dist/**", "**/e2e/**"],
     coverage: {
-      provider: 'v8',
-      reporter: ['text', 'json', 'html'],
+      provider: "v8",
+      reporter: ["text", "json", "html"],
       exclude: [
-        'node_modules/',
-        'dist/',
-        '**/*.d.ts',
-        '**/*.test.ts',
-        '**/index.ts',
+        "node_modules/",
+        "dist/",
+        "**/*.d.ts",
+        "**/*.test.ts",
+        "**/index.ts",
       ],
       thresholds: {
         lines: 80,
@@ -96,26 +96,26 @@ export default defineConfig({
       },
     },
   },
-})
+});
 ```
 
 ### セットアップファイル
 
 ```typescript
 // test/setup.ts
-import '@testing-library/jest-dom'
-import { cleanup } from '@testing-library/react'
-import { afterEach, vi } from 'vitest'
+import "@testing-library/jest-dom";
+import { cleanup } from "@testing-library/react";
+import { afterEach, vi } from "vitest";
 
 // 各テスト後にクリーンアップ
 afterEach(() => {
-  cleanup()
-})
+  cleanup();
+});
 
 // グローバルモック
-vi.mock('@project/repositories', () => ({
+vi.mock("@project/repositories", () => ({
   // 必要に応じてモック
-}))
+}));
 ```
 
 ## ユニットテスト
@@ -124,74 +124,74 @@ vi.mock('@project/repositories', () => ({
 
 ```typescript
 // packages/utils/src/generate-id.test.ts
-import { describe, it, expect } from 'vitest'
-import { generateId } from './generate-id'
+import { describe, it, expect } from "vitest";
+import { generateId } from "./generate-id";
 
-describe('generateId', () => {
-  it('指定したプレフィックスで始まるIDを生成する', () => {
-    const id = generateId('user')
-    expect(id).toMatch(/^user_[a-z0-9]+$/)
-  })
+describe("generateId", () => {
+  it("指定したプレフィックスで始まるIDを生成する", () => {
+    const id = generateId("user");
+    expect(id).toMatch(/^user_[a-z0-9]+$/);
+  });
 
-  it('毎回ユニークなIDを生成する', () => {
-    const ids = new Set(Array.from({ length: 100 }, () => generateId('test')))
-    expect(ids.size).toBe(100)
-  })
-})
+  it("毎回ユニークなIDを生成する", () => {
+    const ids = new Set(Array.from({ length: 100 }, () => generateId("test")));
+    expect(ids.size).toBe(100);
+  });
+});
 ```
 
 ### Zodスキーマのテスト
 
 ```typescript
 // packages/domains/src/user/user.schema.test.ts
-import { describe, it, expect } from 'vitest'
-import { userSchema, createUserSchema } from './user.schema'
+import { describe, it, expect } from "vitest";
+import { userSchema, createUserSchema } from "./user.schema";
 
-describe('userSchema', () => {
+describe("userSchema", () => {
   const validUser = {
-    id: 'user_123',
-    email: 'test@example.com',
-    name: 'Test User',
-    role: 'user',
+    id: "user_123",
+    email: "test@example.com",
+    name: "Test User",
+    role: "user",
     createdAt: new Date(),
     updatedAt: new Date(),
-  }
+  };
 
-  it('有効なユーザーデータを受け入れる', () => {
-    const result = userSchema.safeParse(validUser)
-    expect(result.success).toBe(true)
-  })
+  it("有効なユーザーデータを受け入れる", () => {
+    const result = userSchema.safeParse(validUser);
+    expect(result.success).toBe(true);
+  });
 
-  it('無効なメールアドレスを拒否する', () => {
+  it("無効なメールアドレスを拒否する", () => {
     const result = userSchema.safeParse({
       ...validUser,
-      email: 'invalid-email',
-    })
-    expect(result.success).toBe(false)
+      email: "invalid-email",
+    });
+    expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.issues[0].path).toContain('email')
+      expect(result.error.issues[0].path).toContain("email");
     }
-  })
+  });
 
-  it('空の名前を拒否する', () => {
+  it("空の名前を拒否する", () => {
     const result = userSchema.safeParse({
       ...validUser,
-      name: '',
-    })
-    expect(result.success).toBe(false)
-  })
-})
+      name: "",
+    });
+    expect(result.success).toBe(false);
+  });
+});
 
-describe('createUserSchema', () => {
-  it('id, createdAt, updatedAtなしでバリデーションが通る', () => {
+describe("createUserSchema", () => {
+  it("id, createdAt, updatedAtなしでバリデーションが通る", () => {
     const result = createUserSchema.safeParse({
-      email: 'new@example.com',
-      name: 'New User',
-      role: 'user',
-    })
-    expect(result.success).toBe(true)
-  })
-})
+      email: "new@example.com",
+      name: "New User",
+      role: "user",
+    });
+    expect(result.success).toBe(true);
+  });
+});
 ```
 
 ### Reactコンポーネントのテスト
@@ -241,109 +241,111 @@ describe('Button', () => {
 
 ```typescript
 // packages/repositories/src/domain/users/user.repository.test.ts
-import { describe, it, expect, beforeEach } from 'vitest'
-import { MockAdapter } from '../../adapters/mock-adapter'
-import { UserRepository } from './user.repository'
+import { describe, it, expect, beforeEach } from "vitest";
+import { MockAdapter } from "../../adapters/mock-adapter";
+import { UserRepository } from "./user.repository";
 
-describe('UserRepository', () => {
-  let adapter: MockAdapter
-  let repository: UserRepository
+describe("UserRepository", () => {
+  let adapter: MockAdapter;
+  let repository: UserRepository;
 
   beforeEach(() => {
-    adapter = new MockAdapter()
-    repository = new UserRepository(adapter)
-  })
+    adapter = new MockAdapter();
+    repository = new UserRepository(adapter);
+  });
 
-  describe('create', () => {
-    it('新規ユーザーを作成する', async () => {
+  describe("create", () => {
+    it("新規ユーザーを作成する", async () => {
       const user = await repository.create({
-        email: 'test@example.com',
-        name: 'Test User',
-        role: 'user',
-      })
+        email: "test@example.com",
+        name: "Test User",
+        role: "user",
+      });
 
-      expect(user.id).toBeDefined()
-      expect(user.email).toBe('test@example.com')
-      expect(user.createdAt).toBeInstanceOf(Date)
-      expect(user.updatedAt).toBeInstanceOf(Date)
-    })
+      expect(user.id).toBeDefined();
+      expect(user.email).toBe("test@example.com");
+      expect(user.createdAt).toBeInstanceOf(Date);
+      expect(user.updatedAt).toBeInstanceOf(Date);
+    });
 
-    it('重複メールアドレスでエラーを返す', async () => {
+    it("重複メールアドレスでエラーを返す", async () => {
       await repository.create({
-        email: 'dup@example.com',
-        name: 'User 1',
-        role: 'user',
-      })
+        email: "dup@example.com",
+        name: "User 1",
+        role: "user",
+      });
 
       // 重複チェックが実装されている場合
       // await expect(repository.create({...})).rejects.toThrow()
-    })
-  })
+    });
+  });
 
-  describe('findById', () => {
-    it('存在するユーザーを取得する', async () => {
+  describe("findById", () => {
+    it("存在するユーザーを取得する", async () => {
       const created = await repository.create({
-        email: 'find@example.com',
-        name: 'Find User',
-        role: 'user',
-      })
+        email: "find@example.com",
+        name: "Find User",
+        role: "user",
+      });
 
-      const found = await repository.findById(created.id)
+      const found = await repository.findById(created.id);
 
-      expect(found).not.toBeNull()
-      expect(found?.id).toBe(created.id)
-      expect(found?.email).toBe('find@example.com')
-    })
+      expect(found).not.toBeNull();
+      expect(found?.id).toBe(created.id);
+      expect(found?.email).toBe("find@example.com");
+    });
 
-    it('存在しないIDはnullを返す', async () => {
-      const found = await repository.findById('non-existent')
-      expect(found).toBeNull()
-    })
-  })
+    it("存在しないIDはnullを返す", async () => {
+      const found = await repository.findById("non-existent");
+      expect(found).toBeNull();
+    });
+  });
 
-  describe('update', () => {
-    it('ユーザー情報を更新する', async () => {
+  describe("update", () => {
+    it("ユーザー情報を更新する", async () => {
       const user = await repository.create({
-        email: 'update@example.com',
-        name: 'Original Name',
-        role: 'user',
-      })
+        email: "update@example.com",
+        name: "Original Name",
+        role: "user",
+      });
 
-      await repository.update(user.id, { name: 'Updated Name' })
-      const updated = await repository.findById(user.id)
+      await repository.update(user.id, { name: "Updated Name" });
+      const updated = await repository.findById(user.id);
 
-      expect(updated?.name).toBe('Updated Name')
-      expect(updated?.updatedAt.getTime()).toBeGreaterThan(user.updatedAt.getTime())
-    })
-  })
+      expect(updated?.name).toBe("Updated Name");
+      expect(updated?.updatedAt.getTime()).toBeGreaterThan(
+        user.updatedAt.getTime(),
+      );
+    });
+  });
 
-  describe('delete', () => {
-    it('ユーザーを削除する', async () => {
+  describe("delete", () => {
+    it("ユーザーを削除する", async () => {
       const user = await repository.create({
-        email: 'delete@example.com',
-        name: 'Delete User',
-        role: 'user',
-      })
+        email: "delete@example.com",
+        name: "Delete User",
+        role: "user",
+      });
 
-      await repository.delete(user.id)
-      const found = await repository.findById(user.id)
+      await repository.delete(user.id);
+      const found = await repository.findById(user.id);
 
-      expect(found).toBeNull()
-    })
-  })
-})
+      expect(found).toBeNull();
+    });
+  });
+});
 ```
 
 ### loader/actionのテスト
 
 ```typescript
 // apps/web/app/routes/users/route.test.tsx
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { json } from 'react-router'
-import { loader, action } from './route'
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { json } from "react-router";
+import { loader, action } from "./route";
 
 // モックの設定
-vi.mock('~/server/repositories', () => ({
+vi.mock("~/server/repositories", () => ({
   getRepositories: vi.fn(() => ({
     user: {
       findAll: vi.fn(),
@@ -351,61 +353,61 @@ vi.mock('~/server/repositories', () => ({
       findById: vi.fn(),
     },
   })),
-}))
+}));
 
-describe('users route', () => {
-  describe('loader', () => {
-    it('ユーザー一覧を返す', async () => {
+describe("users route", () => {
+  describe("loader", () => {
+    it("ユーザー一覧を返す", async () => {
       const mockUsers = [
-        { id: '1', name: 'User 1', email: 'user1@example.com' },
-        { id: '2', name: 'User 2', email: 'user2@example.com' },
-      ]
+        { id: "1", name: "User 1", email: "user1@example.com" },
+        { id: "2", name: "User 2", email: "user2@example.com" },
+      ];
 
-      const { getRepositories } = await import('~/server/repositories')
-      vi.mocked(getRepositories().user.findAll).mockResolvedValue(mockUsers)
+      const { getRepositories } = await import("~/server/repositories");
+      vi.mocked(getRepositories().user.findAll).mockResolvedValue(mockUsers);
 
-      const request = new Request('http://localhost/users')
-      const response = await loader({ request, params: {}, context: {} })
+      const request = new Request("http://localhost/users");
+      const response = await loader({ request, params: {}, context: {} });
 
-      expect(response).toBeDefined()
+      expect(response).toBeDefined();
       // レスポンスの検証
-    })
-  })
+    });
+  });
 
-  describe('action', () => {
-    it('ユーザーを作成する', async () => {
-      const formData = new FormData()
-      formData.append('email', 'new@example.com')
-      formData.append('name', 'New User')
-      formData.append('role', 'user')
+  describe("action", () => {
+    it("ユーザーを作成する", async () => {
+      const formData = new FormData();
+      formData.append("email", "new@example.com");
+      formData.append("name", "New User");
+      formData.append("role", "user");
 
-      const request = new Request('http://localhost/users', {
-        method: 'POST',
+      const request = new Request("http://localhost/users", {
+        method: "POST",
         body: formData,
-      })
+      });
 
-      const response = await action({ request, params: {}, context: {} })
+      const response = await action({ request, params: {}, context: {} });
 
       // リダイレクトまたはJSONレスポンスの検証
-    })
+    });
 
-    it('バリデーションエラーを返す', async () => {
-      const formData = new FormData()
-      formData.append('email', 'invalid-email')
-      formData.append('name', '')
+    it("バリデーションエラーを返す", async () => {
+      const formData = new FormData();
+      formData.append("email", "invalid-email");
+      formData.append("name", "");
 
-      const request = new Request('http://localhost/users', {
-        method: 'POST',
+      const request = new Request("http://localhost/users", {
+        method: "POST",
         body: formData,
-      })
+      });
 
-      const response = await action({ request, params: {}, context: {} })
+      const response = await action({ request, params: {}, context: {} });
 
       // エラーレスポンスの検証
-      expect(response.status).toBe(400)
-    })
-  })
-})
+      expect(response.status).toBe(400);
+    });
+  });
+});
 ```
 
 ## E2Eテスト
@@ -414,105 +416,106 @@ describe('users route', () => {
 
 ```typescript
 // playwright.config.ts
-import { defineConfig, devices } from '@playwright/test'
+import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
-  testDir: './e2e',
+  testDir: "./e2e",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: 'html',
+  reporter: "html",
   use: {
-    baseURL: 'http://localhost:3000',
-    trace: 'on-first-retry',
-    screenshot: 'only-on-failure',
+    baseURL: "http://localhost:3000",
+    trace: "on-first-retry",
+    screenshot: "only-on-failure",
   },
   projects: [
     {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      name: "chromium",
+      use: { ...devices["Desktop Chrome"] },
     },
     {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
+      name: "firefox",
+      use: { ...devices["Desktop Firefox"] },
     },
     {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
+      name: "webkit",
+      use: { ...devices["Desktop Safari"] },
     },
     {
-      name: 'mobile-chrome',
-      use: { ...devices['Pixel 5'] },
+      name: "mobile-chrome",
+      use: { ...devices["Pixel 5"] },
     },
   ],
   webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:3000',
+    command: "npm run dev",
+    url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
   },
-})
+});
 ```
 
 ### E2Eテスト例
 
 ```typescript
 // e2e/user-flow.spec.ts
-import { test, expect } from '@playwright/test'
+import { test, expect } from "@playwright/test";
 
-test.describe('User Management', () => {
+test.describe("User Management", () => {
   test.beforeEach(async ({ page }) => {
     // テストデータのセットアップ（APIまたはDB直接）
-    await page.goto('/users')
-  })
+    await page.goto("/users");
+  });
 
-  test('ユーザー一覧を表示する', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: 'Users' })).toBeVisible()
-    await expect(page.getByRole('table')).toBeVisible()
-  })
+  test("ユーザー一覧を表示する", async ({ page }) => {
+    await expect(page.getByRole("heading", { name: "Users" })).toBeVisible();
+    await expect(page.getByRole("table")).toBeVisible();
+  });
 
-  test('新規ユーザーを作成する', async ({ page }) => {
-    await page.getByRole('button', { name: 'Add User' }).click()
+  test("新規ユーザーを作成する", async ({ page }) => {
+    await page.getByRole("button", { name: "Add User" }).click();
 
-    await page.getByLabel('Email').fill('new@example.com')
-    await page.getByLabel('Name').fill('New User')
-    await page.getByRole('combobox', { name: 'Role' }).selectOption('user')
+    await page.getByLabel("Email").fill("new@example.com");
+    await page.getByLabel("Name").fill("New User");
+    await page.getByRole("combobox", { name: "Role" }).selectOption("user");
 
-    await page.getByRole('button', { name: 'Create' }).click()
+    await page.getByRole("button", { name: "Create" }).click();
 
     // 成功メッセージの確認
-    await expect(page.getByText('User created successfully')).toBeVisible()
+    await expect(page.getByText("User created successfully")).toBeVisible();
 
     // 一覧に新規ユーザーが表示される
-    await expect(page.getByText('new@example.com')).toBeVisible()
-  })
+    await expect(page.getByText("new@example.com")).toBeVisible();
+  });
 
-  test('バリデーションエラーを表示する', async ({ page }) => {
-    await page.getByRole('button', { name: 'Add User' }).click()
+  test("バリデーションエラーを表示する", async ({ page }) => {
+    await page.getByRole("button", { name: "Add User" }).click();
 
     // 空のまま送信
-    await page.getByRole('button', { name: 'Create' }).click()
+    await page.getByRole("button", { name: "Create" }).click();
 
     // エラーメッセージの確認
-    await expect(page.getByText('Email is required')).toBeVisible()
-    await expect(page.getByText('Name is required')).toBeVisible()
-  })
+    await expect(page.getByText("Email is required")).toBeVisible();
+    await expect(page.getByText("Name is required")).toBeVisible();
+  });
 
-  test('ユーザーを削除する', async ({ page }) => {
+  test("ユーザーを削除する", async ({ page }) => {
     // 削除対象のユーザーを作成
     // ...
 
-    await page.getByRole('row', { name: /test@example.com/ })
-      .getByRole('button', { name: 'Delete' })
-      .click()
+    await page
+      .getByRole("row", { name: /test@example.com/ })
+      .getByRole("button", { name: "Delete" })
+      .click();
 
     // 確認ダイアログ
-    await page.getByRole('button', { name: 'Confirm' }).click()
+    await page.getByRole("button", { name: "Confirm" }).click();
 
     // ユーザーが一覧から消える
-    await expect(page.getByText('test@example.com')).not.toBeVisible()
-  })
-})
+    await expect(page.getByText("test@example.com")).not.toBeVisible();
+  });
+});
 ```
 
 ## モックパターン
@@ -521,74 +524,74 @@ test.describe('User Management', () => {
 
 ```typescript
 // vi.mock によるモジュールモック
-vi.mock('@project/repositories', () => ({
+vi.mock("@project/repositories", () => ({
   createRepositories: vi.fn(() => ({
     user: {
       findById: vi.fn(),
       create: vi.fn(),
     },
   })),
-}))
+}));
 
 // スパイを使用した部分モック
-import * as utils from '@project/utils'
+import * as utils from "@project/utils";
 
-vi.spyOn(utils, 'generateId').mockReturnValue('mock-id')
+vi.spyOn(utils, "generateId").mockReturnValue("mock-id");
 
 // モックのリセット
 beforeEach(() => {
-  vi.clearAllMocks()
-})
+  vi.clearAllMocks();
+});
 
 afterEach(() => {
-  vi.restoreAllMocks()
-})
+  vi.restoreAllMocks();
+});
 ```
 
 ### 日時のモック
 
 ```typescript
-import { vi, beforeEach, afterEach } from 'vitest'
+import { vi, beforeEach, afterEach } from "vitest";
 
-describe('Time-dependent tests', () => {
+describe("Time-dependent tests", () => {
   beforeEach(() => {
-    vi.useFakeTimers()
-    vi.setSystemTime(new Date('2024-01-01T00:00:00Z'))
-  })
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2024-01-01T00:00:00Z"));
+  });
 
   afterEach(() => {
-    vi.useRealTimers()
-  })
+    vi.useRealTimers();
+  });
 
-  it('現在時刻を使用する処理のテスト', () => {
-    const now = new Date()
-    expect(now.toISOString()).toBe('2024-01-01T00:00:00.000Z')
-  })
-})
+  it("現在時刻を使用する処理のテスト", () => {
+    const now = new Date();
+    expect(now.toISOString()).toBe("2024-01-01T00:00:00.000Z");
+  });
+});
 ```
 
 ### ネットワークリクエストのモック
 
 ```typescript
-import { http, HttpResponse } from 'msw'
-import { setupServer } from 'msw/node'
+import { http, HttpResponse } from "msw";
+import { setupServer } from "msw/node";
 
 const server = setupServer(
-  http.get('/api/users', () => {
+  http.get("/api/users", () => {
     return HttpResponse.json([
-      { id: '1', name: 'User 1' },
-      { id: '2', name: 'User 2' },
-    ])
+      { id: "1", name: "User 1" },
+      { id: "2", name: "User 2" },
+    ]);
   }),
-  http.post('/api/users', async ({ request }) => {
-    const body = await request.json()
-    return HttpResponse.json({ id: 'new-id', ...body }, { status: 201 })
+  http.post("/api/users", async ({ request }) => {
+    const body = await request.json();
+    return HttpResponse.json({ id: "new-id", ...body }, { status: 201 });
   }),
-)
+);
 
-beforeAll(() => server.listen())
-afterEach(() => server.resetHandlers())
-afterAll(() => server.close())
+beforeAll(() => server.listen());
+afterEach(() => server.resetHandlers());
+afterAll(() => server.close());
 ```
 
 ## テストデータ管理
@@ -597,26 +600,26 @@ afterAll(() => server.close())
 
 ```typescript
 // test/factories/user.factory.ts
-import type { User } from '@project/domains'
+import type { User } from "@project/domains";
 
-let counter = 0
+let counter = 0;
 
 export function createUserFactory(overrides?: Partial<User>): User {
-  counter++
+  counter++;
   return {
     id: `user_${counter}`,
     email: `user${counter}@example.com`,
     name: `Test User ${counter}`,
-    role: 'user',
+    role: "user",
     createdAt: new Date(),
     updatedAt: new Date(),
     ...overrides,
-  }
+  };
 }
 
 // 使用例
-const user = createUserFactory({ role: 'admin' })
-const users = Array.from({ length: 10 }, () => createUserFactory())
+const user = createUserFactory({ role: "admin" });
+const users = Array.from({ length: 10 }, () => createUserFactory());
 ```
 
 ### Fixtureパターン
@@ -667,8 +670,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          cache: 'npm'
+          node-version: "22"
+          cache: "npm"
       - run: npm ci
       - run: npm run test -- --coverage
       - uses: codecov/codecov-action@v4
@@ -681,8 +684,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          cache: 'npm'
+          node-version: "22"
+          cache: "npm"
       - run: npm ci
       - run: npx playwright install --with-deps
       - run: npm run test:e2e
@@ -698,29 +701,29 @@ jobs:
 ### AAA パターン
 
 ```typescript
-it('ユーザーを作成する', async () => {
+it("ユーザーを作成する", async () => {
   // Arrange（準備）
-  const userData = { email: 'test@example.com', name: 'Test' }
+  const userData = { email: "test@example.com", name: "Test" };
 
   // Act（実行）
-  const user = await repository.create(userData)
+  const user = await repository.create(userData);
 
   // Assert（検証）
-  expect(user.email).toBe('test@example.com')
-})
+  expect(user.email).toBe("test@example.com");
+});
 ```
 
 ### テスト名の命名規則
 
 ```typescript
 // 「〜する」形式で記述
-describe('UserRepository', () => {
-  describe('create', () => {
-    it('新規ユーザーを作成する', () => {})
-    it('無効なメールでエラーを返す', () => {})
-    it('重複メールで例外をスローする', () => {})
-  })
-})
+describe("UserRepository", () => {
+  describe("create", () => {
+    it("新規ユーザーを作成する", () => {});
+    it("無効なメールでエラーを返す", () => {});
+    it("重複メールで例外をスローする", () => {});
+  });
+});
 ```
 
 ### 独立したテスト

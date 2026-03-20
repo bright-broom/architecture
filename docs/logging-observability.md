@@ -25,65 +25,65 @@
 
 ### ログレベル
 
-| レベル | 用途 | 例 |
-|--------|------|-----|
-| ERROR | 即座に対応が必要なエラー | データベース接続失敗、支払い処理失敗 |
-| WARN | 注意が必要な状況 | 非推奨APIの使用、リトライ発生 |
-| INFO | 重要なビジネスイベント | ユーザー登録、注文完了 |
-| DEBUG | 開発・デバッグ用詳細情報 | 関数の入出力、変数の値 |
+| レベル | 用途                     | 例                                   |
+| ------ | ------------------------ | ------------------------------------ |
+| ERROR  | 即座に対応が必要なエラー | データベース接続失敗、支払い処理失敗 |
+| WARN   | 注意が必要な状況         | 非推奨APIの使用、リトライ発生        |
+| INFO   | 重要なビジネスイベント   | ユーザー登録、注文完了               |
+| DEBUG  | 開発・デバッグ用詳細情報 | 関数の入出力、変数の値               |
 
 ### Logger実装
 
 ```typescript
 // packages/utils/src/logger.ts
 
-type LogLevel = 'error' | 'warn' | 'info' | 'debug'
+type LogLevel = "error" | "warn" | "info" | "debug";
 
 interface LogContext {
-  requestId?: string
-  userId?: string
-  [key: string]: unknown
+  requestId?: string;
+  userId?: string;
+  [key: string]: unknown;
 }
 
 interface LogEntry {
-  timestamp: string
-  level: LogLevel
-  message: string
-  context: LogContext
+  timestamp: string;
+  level: LogLevel;
+  message: string;
+  context: LogContext;
   error?: {
-    name: string
-    message: string
-    stack?: string
-  }
+    name: string;
+    message: string;
+    stack?: string;
+  };
 }
 
 class Logger {
-  private context: LogContext = {}
+  private context: LogContext = {};
 
   /**
    * リクエストスコープのコンテキストを設定
    */
   withContext(context: LogContext): Logger {
-    const child = new Logger()
-    child.context = { ...this.context, ...context }
-    return child
+    const child = new Logger();
+    child.context = { ...this.context, ...context };
+    return child;
   }
 
   error(message: string, error?: Error, context?: LogContext): void {
-    this.log('error', message, context, error)
+    this.log("error", message, context, error);
   }
 
   warn(message: string, context?: LogContext): void {
-    this.log('warn', message, context)
+    this.log("warn", message, context);
   }
 
   info(message: string, context?: LogContext): void {
-    this.log('info', message, context)
+    this.log("info", message, context);
   }
 
   debug(message: string, context?: LogContext): void {
-    if (process.env.NODE_ENV === 'development') {
-      this.log('debug', message, context)
+    if (process.env.NODE_ENV === "development") {
+      this.log("debug", message, context);
     }
   }
 
@@ -91,40 +91,40 @@ class Logger {
     level: LogLevel,
     message: string,
     context?: LogContext,
-    error?: Error
+    error?: Error,
   ): void {
     const entry: LogEntry = {
       timestamp: new Date().toISOString(),
       level,
       message,
       context: { ...this.context, ...context },
-    }
+    };
 
     if (error) {
       entry.error = {
         name: error.name,
         message: error.message,
         stack: error.stack,
-      }
+      };
     }
 
     // 構造化ログとして出力
-    const output = JSON.stringify(entry)
+    const output = JSON.stringify(entry);
 
     switch (level) {
-      case 'error':
-        console.error(output)
-        break
-      case 'warn':
-        console.warn(output)
-        break
+      case "error":
+        console.error(output);
+        break;
+      case "warn":
+        console.warn(output);
+        break;
       default:
-        console.log(output)
+        console.log(output);
     }
 
     // 本番環境ではログサービスに送信
-    if (process.env.NODE_ENV === 'production') {
-      this.sendToLogService(entry)
+    if (process.env.NODE_ENV === "production") {
+      this.sendToLogService(entry);
     }
   }
 
@@ -133,7 +133,7 @@ class Logger {
   }
 }
 
-export const logger = new Logger()
+export const logger = new Logger();
 ```
 
 ### リクエストロギングミドルウェア
@@ -141,46 +141,46 @@ export const logger = new Logger()
 ```typescript
 // apps/web/app/middleware/logging.ts
 
-import { logger } from '@project/utils'
-import { generateId } from '@project/utils'
+import { logger } from "@project/utils";
+import { generateId } from "@project/utils";
 
 export async function loggingMiddleware(
   request: Request,
-  next: () => Promise<Response>
+  next: () => Promise<Response>,
 ): Promise<Response> {
-  const requestId = request.headers.get('x-request-id') || generateId('req')
-  const startTime = Date.now()
+  const requestId = request.headers.get("x-request-id") || generateId("req");
+  const startTime = Date.now();
 
   // リクエストスコープのロガー
   const requestLogger = logger.withContext({
     requestId,
     method: request.method,
     path: new URL(request.url).pathname,
-    userAgent: request.headers.get('user-agent'),
-  })
+    userAgent: request.headers.get("user-agent"),
+  });
 
-  requestLogger.info('Request started')
+  requestLogger.info("Request started");
 
   try {
-    const response = await next()
-    const duration = Date.now() - startTime
+    const response = await next();
+    const duration = Date.now() - startTime;
 
-    requestLogger.info('Request completed', {
+    requestLogger.info("Request completed", {
       status: response.status,
       durationMs: duration,
-    })
+    });
 
     // レスポンスヘッダーにリクエストIDを追加
-    response.headers.set('x-request-id', requestId)
-    return response
+    response.headers.set("x-request-id", requestId);
+    return response;
   } catch (error) {
-    const duration = Date.now() - startTime
+    const duration = Date.now() - startTime;
 
-    requestLogger.error('Request failed', error as Error, {
+    requestLogger.error("Request failed", error as Error, {
       durationMs: duration,
-    })
+    });
 
-    throw error
+    throw error;
   }
 }
 ```
@@ -191,46 +191,49 @@ export async function loggingMiddleware(
 // packages/utils/src/logger.ts
 
 const SENSITIVE_FIELDS = [
-  'password',
-  'token',
-  'secret',
-  'apiKey',
-  'authorization',
-  'creditCard',
-  'ssn',
-]
+  "password",
+  "token",
+  "secret",
+  "apiKey",
+  "authorization",
+  "creditCard",
+  "ssn",
+];
 
 function maskSensitiveData(data: unknown): unknown {
-  if (typeof data !== 'object' || data === null) {
-    return data
+  if (typeof data !== "object" || data === null) {
+    return data;
   }
 
   if (Array.isArray(data)) {
-    return data.map(maskSensitiveData)
+    return data.map(maskSensitiveData);
   }
 
-  const masked: Record<string, unknown> = {}
+  const masked: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(data)) {
-    const isSensitive = SENSITIVE_FIELDS.some(field =>
-      key.toLowerCase().includes(field.toLowerCase())
-    )
+    const isSensitive = SENSITIVE_FIELDS.some((field) =>
+      key.toLowerCase().includes(field.toLowerCase()),
+    );
 
     if (isSensitive) {
-      masked[key] = '***REDACTED***'
-    } else if (typeof value === 'object') {
-      masked[key] = maskSensitiveData(value)
+      masked[key] = "***REDACTED***";
+    } else if (typeof value === "object") {
+      masked[key] = maskSensitiveData(value);
     } else {
-      masked[key] = value
+      masked[key] = value;
     }
   }
-  return masked
+  return masked;
 }
 
 // 使用例
-logger.info('User created', maskSensitiveData({
-  email: 'user@example.com',
-  password: 'secret123',  // → '***REDACTED***'
-}))
+logger.info(
+  "User created",
+  maskSensitiveData({
+    email: "user@example.com",
+    password: "secret123", // → '***REDACTED***'
+  }),
+);
 ```
 
 ## メトリクス
@@ -241,14 +244,14 @@ logger.info('User created', maskSensitiveData({
 // packages/utils/src/metrics.ts
 
 interface MetricPoint {
-  name: string
-  value: number
-  labels: Record<string, string>
-  timestamp: number
+  name: string;
+  value: number;
+  labels: Record<string, string>;
+  timestamp: number;
 }
 
 class MetricsCollector {
-  private points: MetricPoint[] = []
+  private points: MetricPoint[] = [];
 
   /**
    * カウンターをインクリメント
@@ -256,9 +259,9 @@ class MetricsCollector {
   increment(
     name: string,
     labels: Record<string, string> = {},
-    value = 1
+    value = 1,
   ): void {
-    this.record(name, value, labels)
+    this.record(name, value, labels);
   }
 
   /**
@@ -267,9 +270,9 @@ class MetricsCollector {
   gauge(
     name: string,
     value: number,
-    labels: Record<string, string> = {}
+    labels: Record<string, string> = {},
   ): void {
-    this.record(name, value, labels)
+    this.record(name, value, labels);
   }
 
   /**
@@ -278,33 +281,33 @@ class MetricsCollector {
   async timing<T>(
     name: string,
     fn: () => Promise<T>,
-    labels: Record<string, string> = {}
+    labels: Record<string, string> = {},
   ): Promise<T> {
-    const start = Date.now()
+    const start = Date.now();
     try {
-      return await fn()
+      return await fn();
     } finally {
-      const duration = Date.now() - start
-      this.record(`${name}_duration_ms`, duration, labels)
+      const duration = Date.now() - start;
+      this.record(`${name}_duration_ms`, duration, labels);
     }
   }
 
   private record(
     name: string,
     value: number,
-    labels: Record<string, string>
+    labels: Record<string, string>,
   ): void {
     const point: MetricPoint = {
       name,
       value,
       labels,
       timestamp: Date.now(),
-    }
-    this.points.push(point)
+    };
+    this.points.push(point);
 
     // 本番環境ではメトリクスサービスに送信
-    if (process.env.NODE_ENV === 'production') {
-      this.flush()
+    if (process.env.NODE_ENV === "production") {
+      this.flush();
     }
   }
 
@@ -313,7 +316,7 @@ class MetricsCollector {
   }
 }
 
-export const metrics = new MetricsCollector()
+export const metrics = new MetricsCollector();
 ```
 
 ### メトリクス収集例
@@ -323,28 +326,28 @@ export const metrics = new MetricsCollector()
 
 export async function loader({ request }: LoaderFunctionArgs) {
   return metrics.timing(
-    'users_list',
+    "users_list",
     async () => {
-      const users = await repositories.user.findAll()
-      metrics.gauge('users_total', users.length)
-      return json({ users })
+      const users = await repositories.user.findAll();
+      metrics.gauge("users_total", users.length);
+      return json({ users });
     },
-    { route: '/api/users' }
-  )
+    { route: "/api/users" },
+  );
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  metrics.increment('user_create_attempt')
+  metrics.increment("user_create_attempt");
 
   try {
-    const user = await repositories.user.create(data)
-    metrics.increment('user_create_success')
-    return redirect(`/users/${user.id}`)
+    const user = await repositories.user.create(data);
+    metrics.increment("user_create_success");
+    return redirect(`/users/${user.id}`);
   } catch (error) {
-    metrics.increment('user_create_failure', {
+    metrics.increment("user_create_failure", {
       errorType: error.constructor.name,
-    })
-    throw error
+    });
+    throw error;
   }
 }
 ```
@@ -357,9 +360,9 @@ export async function action({ request }: ActionFunctionArgs) {
 // packages/utils/src/tracing.ts
 
 interface TraceContext {
-  traceId: string
-  spanId: string
-  parentSpanId?: string
+  traceId: string;
+  spanId: string;
+  parentSpanId?: string;
 }
 
 class Tracer {
@@ -368,9 +371,9 @@ class Tracer {
    */
   startTrace(): TraceContext {
     return {
-      traceId: generateId('trace'),
-      spanId: generateId('span'),
-    }
+      traceId: generateId("trace"),
+      spanId: generateId("span"),
+    };
   }
 
   /**
@@ -379,38 +382,38 @@ class Tracer {
   startSpan(parent: TraceContext): TraceContext {
     return {
       traceId: parent.traceId,
-      spanId: generateId('span'),
+      spanId: generateId("span"),
       parentSpanId: parent.spanId,
-    }
+    };
   }
 
   /**
    * HTTPヘッダーからトレースコンテキストを抽出
    */
   extractFromHeaders(headers: Headers): TraceContext | null {
-    const traceId = headers.get('x-trace-id')
-    const spanId = headers.get('x-span-id')
+    const traceId = headers.get("x-trace-id");
+    const spanId = headers.get("x-span-id");
 
     if (!traceId || !spanId) {
-      return null
+      return null;
     }
 
-    return { traceId, spanId }
+    return { traceId, spanId };
   }
 
   /**
    * HTTPヘッダーにトレースコンテキストを注入
    */
   injectToHeaders(headers: Headers, context: TraceContext): void {
-    headers.set('x-trace-id', context.traceId)
-    headers.set('x-span-id', context.spanId)
+    headers.set("x-trace-id", context.traceId);
+    headers.set("x-span-id", context.spanId);
     if (context.parentSpanId) {
-      headers.set('x-parent-span-id', context.parentSpanId)
+      headers.set("x-parent-span-id", context.parentSpanId);
     }
   }
 }
 
-export const tracer = new Tracer()
+export const tracer = new Tracer();
 ```
 
 ### スパンの記録
@@ -418,34 +421,34 @@ export const tracer = new Tracer()
 ```typescript
 // 使用例
 async function processOrder(orderId: string, trace: TraceContext) {
-  const span = tracer.startSpan(trace)
+  const span = tracer.startSpan(trace);
 
-  logger.info('Processing order', {
+  logger.info("Processing order", {
     orderId,
     traceId: span.traceId,
     spanId: span.spanId,
-  })
+  });
 
   // データベースクエリ
-  const dbSpan = tracer.startSpan(span)
+  const dbSpan = tracer.startSpan(span);
   const order = await metrics.timing(
-    'db_query',
+    "db_query",
     () => orderRepository.findById(orderId),
-    { operation: 'findById', traceId: span.traceId }
-  )
+    { operation: "findById", traceId: span.traceId },
+  );
 
   // 外部API呼び出し
-  const apiSpan = tracer.startSpan(span)
-  const headers = new Headers()
-  tracer.injectToHeaders(headers, apiSpan)
-  await fetch('https://api.payment.com/process', { headers })
+  const apiSpan = tracer.startSpan(span);
+  const headers = new Headers();
+  tracer.injectToHeaders(headers, apiSpan);
+  await fetch("https://api.payment.com/process", { headers });
 
-  logger.info('Order processed', {
+  logger.info("Order processed", {
     orderId,
     traceId: span.traceId,
     spanId: span.spanId,
     durationMs: Date.now() - startTime,
-  })
+  });
 }
 ```
 
@@ -455,67 +458,70 @@ async function processOrder(orderId: string, trace: TraceContext) {
 // apps/web/app/routes/health.ts
 
 interface HealthStatus {
-  status: 'healthy' | 'unhealthy' | 'degraded'
-  checks: Record<string, {
-    status: 'pass' | 'fail' | 'warn'
-    latencyMs?: number
-    message?: string
-  }>
-  timestamp: string
+  status: "healthy" | "unhealthy" | "degraded";
+  checks: Record<
+    string,
+    {
+      status: "pass" | "fail" | "warn";
+      latencyMs?: number;
+      message?: string;
+    }
+  >;
+  timestamp: string;
 }
 
 export async function loader(): Promise<Response> {
-  const startTime = Date.now()
-  const checks: HealthStatus['checks'] = {}
+  const startTime = Date.now();
+  const checks: HealthStatus["checks"] = {};
 
   // データベース接続チェック
   try {
-    const dbStart = Date.now()
-    await repositories.health.ping()
+    const dbStart = Date.now();
+    await repositories.health.ping();
     checks.database = {
-      status: 'pass',
+      status: "pass",
       latencyMs: Date.now() - dbStart,
-    }
+    };
   } catch (error) {
     checks.database = {
-      status: 'fail',
-      message: 'Database connection failed',
-    }
+      status: "fail",
+      message: "Database connection failed",
+    };
   }
 
   // 外部サービスチェック
   try {
-    const apiStart = Date.now()
-    await fetch('https://api.external.com/health', { timeout: 5000 })
+    const apiStart = Date.now();
+    await fetch("https://api.external.com/health", { timeout: 5000 });
     checks.externalApi = {
-      status: 'pass',
+      status: "pass",
       latencyMs: Date.now() - apiStart,
-    }
+    };
   } catch (error) {
     checks.externalApi = {
-      status: 'warn',
-      message: 'External API is slow or unavailable',
-    }
+      status: "warn",
+      message: "External API is slow or unavailable",
+    };
   }
 
   // 全体ステータスの判定
-  const hasFailure = Object.values(checks).some(c => c.status === 'fail')
-  const hasWarning = Object.values(checks).some(c => c.status === 'warn')
+  const hasFailure = Object.values(checks).some((c) => c.status === "fail");
+  const hasWarning = Object.values(checks).some((c) => c.status === "warn");
 
   const status: HealthStatus = {
-    status: hasFailure ? 'unhealthy' : hasWarning ? 'degraded' : 'healthy',
+    status: hasFailure ? "unhealthy" : hasWarning ? "degraded" : "healthy",
     checks,
     timestamp: new Date().toISOString(),
-  }
+  };
 
-  const httpStatus = hasFailure ? 503 : 200
+  const httpStatus = hasFailure ? 503 : 200;
 
   return json(status, {
     status: httpStatus,
     headers: {
-      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      "Cache-Control": "no-cache, no-store, must-revalidate",
     },
-  })
+  });
 }
 ```
 
@@ -562,13 +568,13 @@ alerts:
 
 ### 主要メトリクス
 
-| カテゴリ | メトリクス | 説明 |
-|----------|-----------|------|
-| トラフィック | requests_per_second | リクエスト数/秒 |
-| レイテンシ | p50_latency, p95_latency, p99_latency | レスポンス時間パーセンタイル |
-| エラー | error_rate, errors_by_type | エラー率、エラー種別 |
-| リソース | cpu_usage, memory_usage | CPU/メモリ使用率 |
-| ビジネス | users_registered, orders_placed | ビジネスKPI |
+| カテゴリ     | メトリクス                            | 説明                         |
+| ------------ | ------------------------------------- | ---------------------------- |
+| トラフィック | requests_per_second                   | リクエスト数/秒              |
+| レイテンシ   | p50_latency, p95_latency, p99_latency | レスポンス時間パーセンタイル |
+| エラー       | error_rate, errors_by_type            | エラー率、エラー種別         |
+| リソース     | cpu_usage, memory_usage               | CPU/メモリ使用率             |
+| ビジネス     | users_registered, orders_placed       | ビジネスKPI                  |
 
 ### ダッシュボード構成例
 
