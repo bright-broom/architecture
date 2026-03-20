@@ -28,26 +28,26 @@
 
 ```typescript
 // scripts/build.mts
-import { execSync } from 'child_process'
-import concurrently from 'concurrently'
+import { execSync } from "child_process";
+import concurrently from "concurrently";
 
 // 1. 型チェック
-console.log('Running type check...')
-execSync('npm run typecheck', { stdio: 'inherit' })
+console.log("Running type check...");
+execSync("npm run typecheck", { stdio: "inherit" });
 
 // 2. パッケージのビルド（依存順）
-console.log('Building packages...')
-await buildPackagesInOrder()
+console.log("Building packages...");
+await buildPackagesInOrder();
 
 // 3. アプリケーションのビルド
-console.log('Building application...')
-execSync('npm run build -w @project/web', { stdio: 'inherit' })
+console.log("Building application...");
+execSync("npm run build -w @project/web", { stdio: "inherit" });
 
 // 4. ビルド成果物の検証
-console.log('Verifying build output...')
-verifyBuildOutput()
+console.log("Verifying build output...");
+verifyBuildOutput();
 
-console.log('Build completed successfully!')
+console.log("Build completed successfully!");
 ```
 
 ### Dockerfile
@@ -101,7 +101,7 @@ on:
     types: [opened, synchronize, ready_for_review]
 
 env:
-  NODE_VERSION: '22'
+  NODE_VERSION: "22"
 
 jobs:
   # ===============================
@@ -119,7 +119,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
@@ -171,7 +171,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
@@ -317,11 +317,11 @@ vercel rollback
 
 ### ロールバック判断基準
 
-| 指標 | 閾値 | アクション |
-|------|------|-----------|
-| エラー率 | > 5% | 自動ロールバック |
-| レスポンスタイム p95 | > 2秒 | アラート + 手動判断 |
-| ヘルスチェック失敗 | 3回連続 | 自動ロールバック |
+| 指標                 | 閾値    | アクション          |
+| -------------------- | ------- | ------------------- |
+| エラー率             | > 5%    | 自動ロールバック    |
+| レスポンスタイム p95 | > 2秒   | アラート + 手動判断 |
+| ヘルスチェック失敗   | 3回連続 | 自動ロールバック    |
 
 ## モニタリング
 
@@ -335,40 +335,40 @@ async function postDeploymentChecks() {
     checkCriticalPaths(),
     checkErrorRates(),
     checkLatency(),
-  ]
+  ];
 
-  const results = await Promise.all(checks)
-  const allPassed = results.every(r => r.passed)
+  const results = await Promise.all(checks);
+  const allPassed = results.every((r) => r.passed);
 
   if (!allPassed) {
-    console.error('Post-deployment checks failed:', results)
-    await triggerRollback()
+    console.error("Post-deployment checks failed:", results);
+    await triggerRollback();
   }
 }
 
 async function checkHealthEndpoint() {
-  const response = await fetch('https://example.com/health')
+  const response = await fetch("https://example.com/health");
   return {
-    name: 'health',
+    name: "health",
     passed: response.ok,
     details: await response.json(),
-  }
+  };
 }
 
 async function checkCriticalPaths() {
-  const paths = ['/', '/login', '/dashboard']
+  const paths = ["/", "/login", "/dashboard"];
   const results = await Promise.all(
-    paths.map(async path => {
-      const response = await fetch(`https://example.com${path}`)
-      return { path, status: response.status }
-    })
-  )
+    paths.map(async (path) => {
+      const response = await fetch(`https://example.com${path}`);
+      return { path, status: response.status };
+    }),
+  );
 
   return {
-    name: 'critical-paths',
-    passed: results.every(r => r.status === 200),
+    name: "critical-paths",
+    passed: results.every((r) => r.status === 200),
     details: results,
-  }
+  };
 }
 ```
 

@@ -7,13 +7,13 @@
 
 ## パフォーマンス目標（SLO）
 
-| メトリクス | 目標値 | 測定方法 |
-|-----------|--------|----------|
-| LCP (Largest Contentful Paint) | < 2.5s | Web Vitals |
-| FID (First Input Delay) | < 100ms | Web Vitals |
-| CLS (Cumulative Layout Shift) | < 0.1 | Web Vitals |
-| TTFB (Time to First Byte) | < 600ms | Server Timing |
-| API Response Time (p95) | < 500ms | Server Metrics |
+| メトリクス                     | 目標値  | 測定方法       |
+| ------------------------------ | ------- | -------------- |
+| LCP (Largest Contentful Paint) | < 2.5s  | Web Vitals     |
+| FID (First Input Delay)        | < 100ms | Web Vitals     |
+| CLS (Cumulative Layout Shift)  | < 0.1   | Web Vitals     |
+| TTFB (Time to First Byte)      | < 600ms | Server Timing  |
+| API Response Time (p95)        | < 500ms | Server Metrics |
 
 ## フロントエンドパフォーマンス
 
@@ -21,8 +21,8 @@
 
 ```typescript
 // vite.config.ts
-import { defineConfig } from 'vite'
-import { visualizer } from 'rollup-plugin-visualizer'
+import { defineConfig } from "vite";
+import { visualizer } from "rollup-plugin-visualizer";
 
 export default defineConfig({
   build: {
@@ -30,24 +30,24 @@ export default defineConfig({
       output: {
         // チャンク分割戦略
         manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router'],
-          ui: ['@project/ui-core'],
+          vendor: ["react", "react-dom", "react-router"],
+          ui: ["@project/ui-core"],
         },
       },
     },
     // 圧縮設定
-    minify: 'esbuild',
+    minify: "esbuild",
     // ソースマップは本番では無効化
-    sourcemap: process.env.NODE_ENV !== 'production',
+    sourcemap: process.env.NODE_ENV !== "production",
   },
   plugins: [
     // バンドル分析（ビルド時のみ）
     visualizer({
-      filename: 'dist/stats.html',
+      filename: "dist/stats.html",
       open: false,
     }),
   ],
-})
+});
 ```
 
 ### 遅延ロード
@@ -214,43 +214,43 @@ function VirtualList({ items }: { items: Item[] }) {
 // N+1問題の回避
 // Bad: N+1クエリ
 async function getOrdersWithItems(userId: string) {
-  const orders = await orderRepository.findByUserId(userId)
+  const orders = await orderRepository.findByUserId(userId);
   for (const order of orders) {
-    order.items = await orderItemRepository.findByOrderId(order.id)  // N回
+    order.items = await orderItemRepository.findByOrderId(order.id); // N回
   }
-  return orders
+  return orders;
 }
 
 // Good: 一括取得
 async function getOrdersWithItems(userId: string) {
-  const orders = await orderRepository.findByUserId(userId)
-  const orderIds = orders.map(o => o.id)
-  const allItems = await orderItemRepository.findByOrderIds(orderIds)
+  const orders = await orderRepository.findByUserId(userId);
+  const orderIds = orders.map((o) => o.id);
+  const allItems = await orderItemRepository.findByOrderIds(orderIds);
 
   // メモリ内で関連付け
-  const itemsByOrderId = groupBy(allItems, 'orderId')
-  return orders.map(order => ({
+  const itemsByOrderId = groupBy(allItems, "orderId");
+  return orders.map((order) => ({
     ...order,
     items: itemsByOrderId[order.id] || [],
-  }))
+  }));
 }
 
 // ページネーション
 async function getUsers(options: PaginationOptions) {
-  const { page = 1, limit = 20 } = options
+  const { page = 1, limit = 20 } = options;
 
   // カーソルベースのページネーション（大量データ向け）
   const users = await userRepository.findAll({
-    limit: limit + 1,  // 次ページの有無を確認
+    limit: limit + 1, // 次ページの有無を確認
     after: options.cursor,
-    orderBy: [{ field: 'createdAt', direction: 'desc' }],
-  })
+    orderBy: [{ field: "createdAt", direction: "desc" }],
+  });
 
-  const hasNextPage = users.length > limit
-  const items = hasNextPage ? users.slice(0, -1) : users
-  const nextCursor = hasNextPage ? items[items.length - 1]?.id : null
+  const hasNextPage = users.length > limit;
+  const items = hasNextPage ? users.slice(0, -1) : users;
+  const nextCursor = hasNextPage ? items[items.length - 1]?.id : null;
 
-  return { items, hasNextPage, nextCursor }
+  return { items, hasNextPage, nextCursor };
 }
 ```
 
@@ -258,48 +258,48 @@ async function getUsers(options: PaginationOptions) {
 
 ```typescript
 // インメモリキャッシュ（単一インスタンス向け）
-const cache = new Map<string, { data: unknown; expiresAt: number }>()
+const cache = new Map<string, { data: unknown; expiresAt: number }>();
 
 async function withCache<T>(
   key: string,
   fn: () => Promise<T>,
-  ttlMs = 60000
+  ttlMs = 60000,
 ): Promise<T> {
-  const cached = cache.get(key)
+  const cached = cache.get(key);
   if (cached && cached.expiresAt > Date.now()) {
-    return cached.data as T
+    return cached.data as T;
   }
 
-  const data = await fn()
-  cache.set(key, { data, expiresAt: Date.now() + ttlMs })
-  return data
+  const data = await fn();
+  cache.set(key, { data, expiresAt: Date.now() + ttlMs });
+  return data;
 }
 
 // 使用例
 const popularProducts = await withCache(
-  'popular-products',
+  "popular-products",
   () => productRepository.getPopular({ limit: 10 }),
-  5 * 60 * 1000  // 5分キャッシュ
-)
+  5 * 60 * 1000, // 5分キャッシュ
+);
 
 // Redis等の分散キャッシュ（複数インスタンス向け）
-import { Redis } from 'ioredis'
+import { Redis } from "ioredis";
 
-const redis = new Redis(process.env.REDIS_URL)
+const redis = new Redis(process.env.REDIS_URL);
 
 async function withRedisCache<T>(
   key: string,
   fn: () => Promise<T>,
-  ttlSeconds = 60
+  ttlSeconds = 60,
 ): Promise<T> {
-  const cached = await redis.get(key)
+  const cached = await redis.get(key);
   if (cached) {
-    return JSON.parse(cached) as T
+    return JSON.parse(cached) as T;
   }
 
-  const data = await fn()
-  await redis.setex(key, ttlSeconds, JSON.stringify(data))
-  return data
+  const data = await fn();
+  await redis.setex(key, ttlSeconds, JSON.stringify(data));
+  return data;
 }
 ```
 
@@ -309,20 +309,16 @@ async function withRedisCache<T>(
 // apps/web/app/routes/dashboard.tsx
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const user = await requireAuth(request)
+  const user = await requireAuth(request);
 
   // 並列でデータ取得
-  const [
-    stats,
-    recentOrders,
-    notifications,
-  ] = await Promise.all([
+  const [stats, recentOrders, notifications] = await Promise.all([
     dashboardService.getStats(user.id),
     orderRepository.findRecent(user.id, { limit: 5 }),
     notificationRepository.findUnread(user.id, { limit: 10 }),
-  ])
+  ]);
 
-  return json({ stats, recentOrders, notifications })
+  return json({ stats, recentOrders, notifications });
 }
 ```
 
@@ -334,26 +330,26 @@ export async function loader({ request }: LoaderFunctionArgs) {
   // ストリームを返す
   const stream = new ReadableStream({
     async start(controller) {
-      const cursor = exportService.createCursor()
+      const cursor = exportService.createCursor();
 
       while (true) {
-        const batch = await cursor.next(100)
-        if (batch.length === 0) break
+        const batch = await cursor.next(100);
+        if (batch.length === 0) break;
 
-        const chunk = batch.map(item => JSON.stringify(item)).join('\n')
-        controller.enqueue(new TextEncoder().encode(chunk + '\n'))
+        const chunk = batch.map((item) => JSON.stringify(item)).join("\n");
+        controller.enqueue(new TextEncoder().encode(chunk + "\n"));
       }
 
-      controller.close()
+      controller.close();
     },
-  })
+  });
 
   return new Response(stream, {
     headers: {
-      'Content-Type': 'application/x-ndjson',
-      'Transfer-Encoding': 'chunked',
+      "Content-Type": "application/x-ndjson",
+      "Transfer-Encoding": "chunked",
     },
-  })
+  });
 }
 ```
 
@@ -386,7 +382,7 @@ export * from './components'
 export default defineConfig({
   build: {
     // ターゲットブラウザ
-    target: 'es2020',
+    target: "es2020",
 
     // チャンクサイズ警告閾値
     chunkSizeWarningLimit: 500,
@@ -395,7 +391,7 @@ export default defineConfig({
     cssCodeSplit: true,
 
     // Terserオプション（esbuildより詳細な制御が必要な場合）
-    minify: 'terser',
+    minify: "terser",
     terserOptions: {
       compress: {
         drop_console: true,
@@ -403,7 +399,7 @@ export default defineConfig({
       },
     },
   },
-})
+});
 ```
 
 ## パフォーマンス計測
@@ -412,18 +408,18 @@ export default defineConfig({
 
 ```typescript
 // apps/web/app/utils/web-vitals.ts
-import { onCLS, onFID, onLCP, onTTFB } from 'web-vitals'
+import { onCLS, onFID, onLCP, onTTFB } from "web-vitals";
 
 export function reportWebVitals() {
-  onCLS(metric => sendToAnalytics('CLS', metric))
-  onFID(metric => sendToAnalytics('FID', metric))
-  onLCP(metric => sendToAnalytics('LCP', metric))
-  onTTFB(metric => sendToAnalytics('TTFB', metric))
+  onCLS((metric) => sendToAnalytics("CLS", metric));
+  onFID((metric) => sendToAnalytics("FID", metric));
+  onLCP((metric) => sendToAnalytics("LCP", metric));
+  onTTFB((metric) => sendToAnalytics("TTFB", metric));
 }
 
 function sendToAnalytics(name: string, metric: Metric) {
   // Google Analytics, DataDog等に送信
-  console.log(`${name}: ${metric.value}`)
+  console.log(`${name}: ${metric.value}`);
 }
 ```
 

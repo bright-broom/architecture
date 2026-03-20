@@ -89,11 +89,13 @@ LOG_LEVEL=debug
 
 ```typescript
 // packages/config/src/env.ts
-import { z } from 'zod'
+import { z } from "zod";
 
 const envSchema = z.object({
   // Node環境
-  NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+  NODE_ENV: z
+    .enum(["development", "production", "test"])
+    .default("development"),
 
   // アプリケーション
   PORT: z.coerce.number().default(3000),
@@ -109,46 +111,46 @@ const envSchema = z.object({
   // Firebase
   FIREBASE_PROJECT_ID: z.string(),
   FIREBASE_CLIENT_EMAIL: z.string().email(),
-  FIREBASE_PRIVATE_KEY: z.string().transform(key =>
+  FIREBASE_PRIVATE_KEY: z.string().transform((key) =>
     // Render等での改行エスケープ対応
-    key.replace(/\\n/g, '\n')
+    key.replace(/\\n/g, "\n"),
   ),
 
   // 監視（オプション）
   SENTRY_DSN: z.string().url().optional(),
-  LOG_LEVEL: z.enum(['error', 'warn', 'info', 'debug']).default('info'),
-})
+  LOG_LEVEL: z.enum(["error", "warn", "info", "debug"]).default("info"),
+});
 
-export type Env = z.infer<typeof envSchema>
+export type Env = z.infer<typeof envSchema>;
 
 function validateEnv(): Env {
-  const result = envSchema.safeParse(process.env)
+  const result = envSchema.safeParse(process.env);
 
   if (!result.success) {
-    console.error('Invalid environment variables:')
-    console.error(result.error.flatten().fieldErrors)
-    process.exit(1)
+    console.error("Invalid environment variables:");
+    console.error(result.error.flatten().fieldErrors);
+    process.exit(1);
   }
 
-  return result.data
+  return result.data;
 }
 
-export const env = validateEnv()
+export const env = validateEnv();
 ```
 
 ### アプリケーションでの使用
 
 ```typescript
 // apps/web/app/utils/config.server.ts
-import { env } from '@project/config'
+import { env } from "@project/config";
 
 // サーバーサイドでのみ使用
 export const config = {
   app: {
     url: env.APP_URL,
     port: env.PORT,
-    isDevelopment: env.NODE_ENV === 'development',
-    isProduction: env.NODE_ENV === 'production',
+    isDevelopment: env.NODE_ENV === "development",
+    isProduction: env.NODE_ENV === "production",
   },
   database: {
     url: env.DATABASE_URL,
@@ -162,9 +164,9 @@ export const config = {
     clientEmail: env.FIREBASE_CLIENT_EMAIL,
     privateKey: env.FIREBASE_PRIVATE_KEY,
   },
-}
+};
 
-export type Config = typeof config
+export type Config = typeof config;
 ```
 
 ## クライアントサイドの設定
@@ -176,18 +178,18 @@ export type Config = typeof config
 
 // VITE_ プレフィックスの変数のみクライアントに公開
 const clientEnvSchema = z.object({
-  VITE_APP_NAME: z.string().default('My App'),
+  VITE_APP_NAME: z.string().default("My App"),
   VITE_API_URL: z.string().url(),
   VITE_GA_TRACKING_ID: z.string().optional(),
   VITE_SENTRY_DSN: z.string().optional(),
-})
+});
 
 export const clientConfig = clientEnvSchema.parse({
   VITE_APP_NAME: import.meta.env.VITE_APP_NAME,
   VITE_API_URL: import.meta.env.VITE_API_URL,
   VITE_GA_TRACKING_ID: import.meta.env.VITE_GA_TRACKING_ID,
   VITE_SENTRY_DSN: import.meta.env.VITE_SENTRY_DSN,
-})
+});
 ```
 
 ### loaderからクライアントへ設定を渡す
@@ -316,29 +318,29 @@ SENTRY_DSN
 
 ```typescript
 // Google Secret Managerを使用する場合
-import { SecretManagerServiceClient } from '@google-cloud/secret-manager'
+import { SecretManagerServiceClient } from "@google-cloud/secret-manager";
 
-const client = new SecretManagerServiceClient()
+const client = new SecretManagerServiceClient();
 
 async function getSecret(name: string): Promise<string> {
   const [version] = await client.accessSecretVersion({
     name: `projects/${projectId}/secrets/${name}/versions/latest`,
-  })
+  });
 
-  const payload = version.payload?.data?.toString()
+  const payload = version.payload?.data?.toString();
   if (!payload) {
-    throw new Error(`Secret ${name} not found`)
+    throw new Error(`Secret ${name} not found`);
   }
 
-  return payload
+  return payload;
 }
 
 // 起動時にシークレットを取得
 export async function loadSecrets() {
   return {
-    databaseUrl: await getSecret('database-url'),
-    sessionSecret: await getSecret('session-secret'),
-  }
+    databaseUrl: await getSecret("database-url"),
+    sessionSecret: await getSecret("session-secret"),
+  };
 }
 ```
 
@@ -349,25 +351,23 @@ export async function loadSecrets() {
 ```typescript
 // apps/web/app/entry.server.tsx
 
-import { env } from '@project/config'
+import { env } from "@project/config";
 
 // 起動時に必須設定をチェック
 function validateRequiredConfig() {
-  const required = [
-    'DATABASE_URL',
-    'SESSION_SECRET',
-    'FIREBASE_PROJECT_ID',
-  ]
+  const required = ["DATABASE_URL", "SESSION_SECRET", "FIREBASE_PROJECT_ID"];
 
-  const missing = required.filter(key => !process.env[key])
+  const missing = required.filter((key) => !process.env[key]);
 
   if (missing.length > 0) {
-    console.error(`Missing required environment variables: ${missing.join(', ')}`)
-    process.exit(1)
+    console.error(
+      `Missing required environment variables: ${missing.join(", ")}`,
+    );
+    process.exit(1);
   }
 }
 
-validateRequiredConfig()
+validateRequiredConfig();
 ```
 
 ### ヘルスチェックでの検証
@@ -380,14 +380,14 @@ export async function loader() {
     database: await checkDatabaseConnection(),
     firebase: await checkFirebaseConnection(),
     // 外部サービスの接続チェック
-  }
+  };
 
-  const allHealthy = Object.values(checks).every(c => c.status === 'pass')
+  const allHealthy = Object.values(checks).every((c) => c.status === "pass");
 
   return json(
-    { status: allHealthy ? 'healthy' : 'unhealthy', checks },
-    { status: allHealthy ? 200 : 503 }
-  )
+    { status: allHealthy ? "healthy" : "unhealthy", checks },
+    { status: allHealthy ? 200 : 503 },
+  );
 }
 ```
 

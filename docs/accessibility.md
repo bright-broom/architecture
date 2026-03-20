@@ -7,12 +7,12 @@
 
 ## 基本原則（POUR）
 
-| 原則 | 説明 | 例 |
-|------|------|-----|
-| Perceivable（知覚可能） | 情報を認識できる | 画像に代替テキスト |
-| Operable（操作可能） | インターフェースを操作できる | キーボード操作対応 |
-| Understandable（理解可能） | 内容を理解できる | 明確なエラーメッセージ |
-| Robust（堅牢） | 支援技術と互換性がある | セマンティックHTML |
+| 原則                       | 説明                         | 例                     |
+| -------------------------- | ---------------------------- | ---------------------- |
+| Perceivable（知覚可能）    | 情報を認識できる             | 画像に代替テキスト     |
+| Operable（操作可能）       | インターフェースを操作できる | キーボード操作対応     |
+| Understandable（理解可能） | 内容を理解できる             | 明確なエラーメッセージ |
+| Robust（堅牢）             | 支援技術と互換性がある       | セマンティックHTML     |
 
 ## セマンティックHTML
 
@@ -101,29 +101,29 @@ const buttonVariants = cva(
 ```tsx
 // キーボードイベントの処理
 function Menu({ items, onSelect }: MenuProps) {
-  const [activeIndex, setActiveIndex] = useState(0)
+  const [activeIndex, setActiveIndex] = useState(0);
 
   const handleKeyDown = (e: KeyboardEvent) => {
     switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault()
-        setActiveIndex(prev => Math.min(prev + 1, items.length - 1))
-        break
-      case 'ArrowUp':
-        e.preventDefault()
-        setActiveIndex(prev => Math.max(prev - 1, 0))
-        break
-      case 'Enter':
-      case ' ':
-        e.preventDefault()
-        onSelect(items[activeIndex])
-        break
-      case 'Escape':
-        e.preventDefault()
-        closeMenu()
-        break
+      case "ArrowDown":
+        e.preventDefault();
+        setActiveIndex((prev) => Math.min(prev + 1, items.length - 1));
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        setActiveIndex((prev) => Math.max(prev - 1, 0));
+        break;
+      case "Enter":
+      case " ":
+        e.preventDefault();
+        onSelect(items[activeIndex]);
+        break;
+      case "Escape":
+        e.preventDefault();
+        closeMenu();
+        break;
     }
-  }
+  };
 
   return (
     <ul role="menu" onKeyDown={handleKeyDown}>
@@ -138,7 +138,7 @@ function Menu({ items, onSelect }: MenuProps) {
         </li>
       ))}
     </ul>
-  )
+  );
 }
 
 // スキップリンク
@@ -150,7 +150,7 @@ function SkipLink() {
     >
       メインコンテンツにスキップ
     </a>
-  )
+  );
 }
 ```
 
@@ -176,8 +176,8 @@ function SkipLink() {
 ```tsx
 // 展開/折りたたみ
 function Accordion({ title, children }: AccordionProps) {
-  const [isOpen, setIsOpen] = useState(false)
-  const contentId = useId()
+  const [isOpen, setIsOpen] = useState(false);
+  const contentId = useId();
 
   return (
     <div>
@@ -197,12 +197,12 @@ function Accordion({ title, children }: AccordionProps) {
         {children}
       </div>
     </div>
-  )
+  );
 }
 
 // タブ
 function Tabs({ tabs }: TabsProps) {
-  const [activeTab, setActiveTab] = useState(0)
+  const [activeTab, setActiveTab] = useState(0);
 
   return (
     <div>
@@ -234,35 +234,35 @@ function Tabs({ tabs }: TabsProps) {
         </div>
       ))}
     </div>
-  )
+  );
 }
 
 // モーダル
 function Modal({ isOpen, onClose, title, children }: ModalProps) {
-  const titleId = useId()
+  const titleId = useId();
 
   useEffect(() => {
     if (isOpen) {
       // フォーカストラップ
-      const previousFocus = document.activeElement as HTMLElement
-      return () => previousFocus?.focus()
+      const previousFocus = document.activeElement as HTMLElement;
+      return () => previousFocus?.focus();
     }
-  }, [isOpen])
+  }, [isOpen]);
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   return (
     <div
       role="dialog"
       aria-modal="true"
       aria-labelledby={titleId}
-      onKeyDown={(e) => e.key === 'Escape' && onClose()}
+      onKeyDown={(e) => e.key === "Escape" && onClose()}
     >
       <h2 id={titleId}>{title}</h2>
       {children}
       <button onClick={onClose}>閉じる</button>
     </div>
-  )
+  );
 }
 ```
 
@@ -276,11 +276,11 @@ function Notification({ message, type }: NotificationProps) {
       role="alert"
       aria-live="polite"
       aria-atomic="true"
-      className={type === 'error' ? 'text-red-600' : 'text-green-600'}
+      className={type === "error" ? "text-red-600" : "text-green-600"}
     >
       {message}
     </div>
-  )
+  );
 }
 
 // ローディング状態
@@ -289,7 +289,7 @@ function LoadingIndicator({ isLoading }: { isLoading: boolean }) {
     <div aria-live="polite" aria-busy={isLoading}>
       {isLoading && <span>読み込み中...</span>}
     </div>
-  )
+  );
 }
 ```
 
@@ -298,15 +298,9 @@ function LoadingIndicator({ isLoading }: { isLoading: boolean }) {
 ### ラベルとエラー
 
 ```tsx
-function FormField({
-  id,
-  label,
-  error,
-  required,
-  children,
-}: FormFieldProps) {
-  const errorId = `${id}-error`
-  const describedBy = error ? errorId : undefined
+function FormField({ id, label, error, required, children }: FormFieldProps) {
+  const errorId = `${id}-error`;
+  const describedBy = error ? errorId : undefined;
 
   return (
     <div>
@@ -317,9 +311,9 @@ function FormField({
       </label>
       {React.cloneElement(children, {
         id,
-        'aria-describedby': describedBy,
-        'aria-invalid': !!error,
-        'aria-required': required,
+        "aria-describedby": describedBy,
+        "aria-invalid": !!error,
+        "aria-required": required,
       })}
       {error && (
         <p id={errorId} role="alert" className="text-red-600">
@@ -327,27 +321,27 @@ function FormField({
         </p>
       )}
     </div>
-  )
+  );
 }
 
 // 使用例
 <FormField id="email" label="メールアドレス" error={errors.email} required>
   <input type="email" name="email" />
-</FormField>
+</FormField>;
 ```
 
 ### フォームの説明
 
 ```tsx
 function PasswordField() {
-  const [showPassword, setShowPassword] = useState(false)
-  const hintId = useId()
+  const [showPassword, setShowPassword] = useState(false);
+  const hintId = useId();
 
   return (
     <div>
       <label htmlFor="password">パスワード</label>
       <input
-        type={showPassword ? 'text' : 'password'}
+        type={showPassword ? "text" : "password"}
         id="password"
         aria-describedby={hintId}
       />
@@ -356,13 +350,13 @@ function PasswordField() {
         onClick={() => setShowPassword(!showPassword)}
         aria-pressed={showPassword}
       >
-        {showPassword ? 'パスワードを隠す' : 'パスワードを表示'}
+        {showPassword ? "パスワードを隠す" : "パスワードを表示"}
       </button>
       <p id={hintId} className="text-sm text-gray-600">
         8文字以上、英大文字・小文字・数字を含む
       </p>
     </div>
-  )
+  );
 }
 ```
 
@@ -395,7 +389,12 @@ function PasswordField() {
 <video controls>
   <source src="/video.mp4" type="video/mp4" />
   <track kind="captions" src="/captions.vtt" srcLang="ja" label="日本語" />
-  <track kind="descriptions" src="/descriptions.vtt" srcLang="ja" label="音声ガイド" />
+  <track
+    kind="descriptions"
+    src="/descriptions.vtt"
+    srcLang="ja"
+    label="音声ガイド"
+  />
 </video>
 ```
 
@@ -407,9 +406,9 @@ function PasswordField() {
 /* WCAG AA: 4.5:1以上（通常テキスト）、3:1以上（大きなテキスト） */
 :root {
   /* 背景白(#ffffff)に対して */
-  --color-text: #1f2937;          /* コントラスト比 12.6:1 */
+  --color-text: #1f2937; /* コントラスト比 12.6:1 */
   --color-text-secondary: #6b7280; /* コントラスト比 5.4:1 */
-  --color-link: #2563eb;           /* コントラスト比 4.5:1 */
+  --color-link: #2563eb; /* コントラスト比 4.5:1 */
 }
 ```
 

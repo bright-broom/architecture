@@ -55,32 +55,37 @@ DELETE /users/:id       # ユーザー削除
 
 ```typescript
 // apps/web/app/routes.ts
-import { type RouteConfig, route, index, layout } from '@react-router/dev/routes'
+import {
+  type RouteConfig,
+  route,
+  index,
+  layout,
+} from "@react-router/dev/routes";
 
 export default [
   // 公開ルート
-  index('routes/home.tsx'),
-  route('login', 'routes/auth/login.tsx'),
-  route('register', 'routes/auth/register.tsx'),
+  index("routes/home.tsx"),
+  route("login", "routes/auth/login.tsx"),
+  route("register", "routes/auth/register.tsx"),
 
   // 認証必須ルート
-  layout('routes/layouts/authenticated.tsx', [
-    route('dashboard', 'routes/dashboard.tsx'),
+  layout("routes/layouts/authenticated.tsx", [
+    route("dashboard", "routes/dashboard.tsx"),
 
     // ユーザー管理
-    route('users', 'routes/users/index.tsx'),
-    route('users/new', 'routes/users/new.tsx'),
-    route('users/:id', 'routes/users/$id.tsx'),
-    route('users/:id/edit', 'routes/users/$id.edit.tsx'),
+    route("users", "routes/users/index.tsx"),
+    route("users/new", "routes/users/new.tsx"),
+    route("users/:id", "routes/users/$id.tsx"),
+    route("users/:id/edit", "routes/users/$id.edit.tsx"),
 
     // 注文管理（ネストリソース）
-    route('users/:userId/orders', 'routes/users/$userId.orders.tsx'),
+    route("users/:userId/orders", "routes/users/$userId.orders.tsx"),
   ]),
 
   // API エンドポイント
-  route('api/users', 'routes/api/users.tsx'),
-  route('api/users/:id', 'routes/api/users.$id.tsx'),
-] satisfies RouteConfig
+  route("api/users", "routes/api/users.tsx"),
+  route("api/users/:id", "routes/api/users.$id.tsx"),
+] satisfies RouteConfig;
 ```
 
 ## loader/action パターン
@@ -89,26 +94,24 @@ export default [
 
 ```typescript
 // apps/web/app/routes/users/index.tsx
-import { json, type LoaderFunctionArgs } from 'react-router'
-import { z } from 'zod'
+import { json, type LoaderFunctionArgs } from "react-router";
+import { z } from "zod";
 
 // クエリパラメータのスキーマ
 const searchParamsSchema = z.object({
   page: z.coerce.number().positive().default(1),
   limit: z.coerce.number().min(1).max(100).default(20),
-  role: z.enum(['admin', 'user']).optional(),
+  role: z.enum(["admin", "user"]).optional(),
   search: z.string().optional(),
-  sortBy: z.enum(['name', 'createdAt']).default('createdAt'),
-  sortOrder: z.enum(['asc', 'desc']).default('desc'),
-})
+  sortBy: z.enum(["name", "createdAt"]).default("createdAt"),
+  sortOrder: z.enum(["asc", "desc"]).default("desc"),
+});
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const user = await requireAuth(request)
+  const user = await requireAuth(request);
 
-  const url = new URL(request.url)
-  const params = searchParamsSchema.parse(
-    Object.fromEntries(url.searchParams)
-  )
+  const url = new URL(request.url);
+  const params = searchParamsSchema.parse(Object.fromEntries(url.searchParams));
 
   const result = await repositories.user.findPaginated({
     page: params.page,
@@ -121,7 +124,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       field: params.sortBy,
       direction: params.sortOrder,
     },
-  })
+  });
 
   return json({
     users: result.items,
@@ -131,7 +134,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       total: result.total,
       totalPages: Math.ceil(result.total / params.limit),
     },
-  })
+  });
 }
 ```
 
@@ -139,48 +142,48 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 ```typescript
 // apps/web/app/routes/users/new.tsx
-import { redirect, json, type ActionFunctionArgs } from 'react-router'
-import { createUserSchema } from '@project/domains'
+import { redirect, json, type ActionFunctionArgs } from "react-router";
+import { createUserSchema } from "@project/domains";
 
 export async function action({ request }: ActionFunctionArgs) {
-  const user = await requireAuth(request)
+  const user = await requireAuth(request);
 
   // 権限チェック
-  if (user.role !== 'admin') {
-    throw new Response('Forbidden', { status: 403 })
+  if (user.role !== "admin") {
+    throw new Response("Forbidden", { status: 403 });
   }
 
-  const formData = await request.formData()
-  const rawData = Object.fromEntries(formData)
+  const formData = await request.formData();
+  const rawData = Object.fromEntries(formData);
 
   // バリデーション
-  const result = createUserSchema.safeParse(rawData)
+  const result = createUserSchema.safeParse(rawData);
   if (!result.success) {
     return json(
       {
         success: false,
         errors: result.error.flatten().fieldErrors,
       },
-      { status: 400 }
-    )
+      { status: 400 },
+    );
   }
 
   try {
-    const newUser = await repositories.user.create(result.data)
+    const newUser = await repositories.user.create(result.data);
 
     // 成功時はリダイレクト
-    return redirect(`/users/${newUser.id}`)
+    return redirect(`/users/${newUser.id}`);
   } catch (error) {
     if (error instanceof ConflictError) {
       return json(
         {
           success: false,
-          errors: { email: ['このメールアドレスは既に使用されています'] },
+          errors: { email: ["このメールアドレスは既に使用されています"] },
         },
-        { status: 409 }
-      )
+        { status: 409 },
+      );
     }
-    throw error
+    throw error;
   }
 }
 ```
@@ -340,28 +343,29 @@ GET /users?role=admin&search=john&sortBy=name&sortOrder=asc&page=1&limit=20
 
 // 作成用スキーマ
 export const createUserSchema = z.object({
-  email: z.string().email('有効なメールアドレスを入力してください'),
-  name: z.string()
-    .min(1, '名前は必須です')
-    .max(100, '名前は100文字以内で入力してください'),
-  role: z.enum(['admin', 'user']).default('user'),
-})
+  email: z.string().email("有効なメールアドレスを入力してください"),
+  name: z
+    .string()
+    .min(1, "名前は必須です")
+    .max(100, "名前は100文字以内で入力してください"),
+  role: z.enum(["admin", "user"]).default("user"),
+});
 
 // 更新用スキーマ（部分更新対応）
-export const updateUserSchema = createUserSchema.partial()
+export const updateUserSchema = createUserSchema.partial();
 
 // クエリパラメータスキーマ
 export const userQuerySchema = z.object({
   page: z.coerce.number().positive().default(1),
   limit: z.coerce.number().min(1).max(100).default(20),
-  role: z.enum(['admin', 'user']).optional(),
+  role: z.enum(["admin", "user"]).optional(),
   search: z.string().max(100).optional(),
-})
+});
 
 // IDパラメータスキーマ
 export const userIdSchema = z.object({
-  id: z.string().regex(/^user_[a-z0-9]+$/, '無効なユーザーIDです'),
-})
+  id: z.string().regex(/^user_[a-z0-9]+$/, "無効なユーザーIDです"),
+});
 ```
 
 ### パラメータ検証ユーティリティ
@@ -371,24 +375,24 @@ export const userIdSchema = z.object({
 
 export function validateSearchParams<T extends z.ZodType>(
   request: Request,
-  schema: T
+  schema: T,
 ): z.infer<T> {
-  const url = new URL(request.url)
-  const params = Object.fromEntries(url.searchParams)
-  return schema.parse(params)
+  const url = new URL(request.url);
+  const params = Object.fromEntries(url.searchParams);
+  return schema.parse(params);
 }
 
 export function validateParams<T extends z.ZodType>(
   params: Record<string, string | undefined>,
-  schema: T
+  schema: T,
 ): z.infer<T> {
-  return schema.parse(params)
+  return schema.parse(params);
 }
 
 // 使用例
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { id } = validateParams(params, userIdSchema)
-  const query = validateSearchParams(request, userQuerySchema)
+  const { id } = validateParams(params, userIdSchema);
+  const query = validateSearchParams(request, userQuerySchema);
   // ...
 }
 ```
@@ -401,36 +405,36 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 // apps/web/app/utils/auth.server.ts
 
 export async function requireAuth(request: Request): Promise<User> {
-  const session = await getSession(request)
-  const userId = session.get('userId')
+  const session = await getSession(request);
+  const userId = session.get("userId");
 
   if (!userId) {
-    throw redirect('/login', {
+    throw redirect("/login", {
       headers: {
-        'Set-Cookie': await commitSession(session),
+        "Set-Cookie": await commitSession(session),
       },
-    })
+    });
   }
 
-  const user = await repositories.user.findById(userId)
+  const user = await repositories.user.findById(userId);
   if (!user) {
-    throw redirect('/login')
+    throw redirect("/login");
   }
 
-  return user
+  return user;
 }
 
 export async function requireRole(
   request: Request,
   ...roles: UserRole[]
 ): Promise<User> {
-  const user = await requireAuth(request)
+  const user = await requireAuth(request);
 
   if (!roles.includes(user.role)) {
-    throw new Response('Forbidden', { status: 403 })
+    throw new Response("Forbidden", { status: 403 });
   }
 
-  return user
+  return user;
 }
 ```
 
@@ -479,12 +483,12 @@ paths:
             maximum: 100
             default: 20
       responses:
-        '200':
+        "200":
           description: 成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserListResponse'
+                $ref: "#/components/schemas/UserListResponse"
 ```
 
 ## チェックリスト

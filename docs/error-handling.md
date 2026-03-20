@@ -18,19 +18,19 @@
  * ドメインエラーの基底クラス
  */
 export abstract class DomainError extends Error {
-  abstract readonly code: string
-  abstract readonly statusCode: number
+  abstract readonly code: string;
+  abstract readonly statusCode: number;
 
   constructor(message: string, options?: ErrorOptions) {
-    super(message, options)
-    this.name = this.constructor.name
+    super(message, options);
+    this.name = this.constructor.name;
   }
 
   toJSON() {
     return {
       code: this.code,
       message: this.message,
-    }
+    };
   }
 }
 
@@ -38,24 +38,24 @@ export abstract class DomainError extends Error {
  * バリデーションエラー
  */
 export class ValidationError extends DomainError {
-  readonly code = 'VALIDATION_ERROR'
-  readonly statusCode = 400
-  readonly fieldErrors: Record<string, string[]>
+  readonly code = "VALIDATION_ERROR";
+  readonly statusCode = 400;
+  readonly fieldErrors: Record<string, string[]>;
 
   constructor(
     message: string,
     fieldErrors: Record<string, string[]> = {},
-    options?: ErrorOptions
+    options?: ErrorOptions,
   ) {
-    super(message, options)
-    this.fieldErrors = fieldErrors
+    super(message, options);
+    this.fieldErrors = fieldErrors;
   }
 
   toJSON() {
     return {
       ...super.toJSON(),
       fieldErrors: this.fieldErrors,
-    }
+    };
   }
 }
 
@@ -63,11 +63,11 @@ export class ValidationError extends DomainError {
  * リソースが見つからないエラー
  */
 export class NotFoundError extends DomainError {
-  readonly code = 'NOT_FOUND'
-  readonly statusCode = 404
+  readonly code = "NOT_FOUND";
+  readonly statusCode = 404;
 
   constructor(resource: string, id: string, options?: ErrorOptions) {
-    super(`${resource} with id '${id}' not found`, options)
+    super(`${resource} with id '${id}' not found`, options);
   }
 }
 
@@ -75,11 +75,11 @@ export class NotFoundError extends DomainError {
  * 認証エラー
  */
 export class AuthenticationError extends DomainError {
-  readonly code = 'AUTHENTICATION_ERROR'
-  readonly statusCode = 401
+  readonly code = "AUTHENTICATION_ERROR";
+  readonly statusCode = 401;
 
-  constructor(message = 'Authentication required', options?: ErrorOptions) {
-    super(message, options)
+  constructor(message = "Authentication required", options?: ErrorOptions) {
+    super(message, options);
   }
 }
 
@@ -87,11 +87,11 @@ export class AuthenticationError extends DomainError {
  * 認可エラー
  */
 export class AuthorizationError extends DomainError {
-  readonly code = 'AUTHORIZATION_ERROR'
-  readonly statusCode = 403
+  readonly code = "AUTHORIZATION_ERROR";
+  readonly statusCode = 403;
 
-  constructor(message = 'Permission denied', options?: ErrorOptions) {
-    super(message, options)
+  constructor(message = "Permission denied", options?: ErrorOptions) {
+    super(message, options);
   }
 }
 
@@ -99,11 +99,11 @@ export class AuthorizationError extends DomainError {
  * ビジネスルール違反
  */
 export class BusinessRuleError extends DomainError {
-  readonly code = 'BUSINESS_RULE_VIOLATION'
-  readonly statusCode = 422
+  readonly code = "BUSINESS_RULE_VIOLATION";
+  readonly statusCode = 422;
 
   constructor(message: string, options?: ErrorOptions) {
-    super(message, options)
+    super(message, options);
   }
 }
 
@@ -111,11 +111,11 @@ export class BusinessRuleError extends DomainError {
  * 競合エラー（楽観的ロック失敗など）
  */
 export class ConflictError extends DomainError {
-  readonly code = 'CONFLICT'
-  readonly statusCode = 409
+  readonly code = "CONFLICT";
+  readonly statusCode = 409;
 
   constructor(message: string, options?: ErrorOptions) {
-    super(message, options)
+    super(message, options);
   }
 }
 ```
@@ -128,47 +128,43 @@ export class ConflictError extends DomainError {
 // packages/repositories/src/errors/infrastructure-errors.ts
 
 export class InfrastructureError extends Error {
-  readonly isRetryable: boolean
+  readonly isRetryable: boolean;
 
-  constructor(
-    message: string,
-    isRetryable = false,
-    options?: ErrorOptions
-  ) {
-    super(message, options)
-    this.name = 'InfrastructureError'
-    this.isRetryable = isRetryable
+  constructor(message: string, isRetryable = false, options?: ErrorOptions) {
+    super(message, options);
+    this.name = "InfrastructureError";
+    this.isRetryable = isRetryable;
   }
 }
 
 export class DatabaseError extends InfrastructureError {
   constructor(message: string, options?: ErrorOptions) {
-    super(message, true, options)
-    this.name = 'DatabaseError'
+    super(message, true, options);
+    this.name = "DatabaseError";
   }
 }
 
 export class ExternalServiceError extends InfrastructureError {
-  readonly serviceName: string
-  readonly statusCode?: number
+  readonly serviceName: string;
+  readonly statusCode?: number;
 
   constructor(
     serviceName: string,
     message: string,
     statusCode?: number,
-    options?: ErrorOptions
+    options?: ErrorOptions,
   ) {
-    super(message, true, options)
-    this.name = 'ExternalServiceError'
-    this.serviceName = serviceName
-    this.statusCode = statusCode
+    super(message, true, options);
+    this.name = "ExternalServiceError";
+    this.serviceName = serviceName;
+    this.statusCode = statusCode;
   }
 }
 
 export class NetworkError extends InfrastructureError {
-  constructor(message = 'Network error', options?: ErrorOptions) {
-    super(message, true, options)
-    this.name = 'NetworkError'
+  constructor(message = "Network error", options?: ErrorOptions) {
+    super(message, true, options);
+    this.name = "NetworkError";
   }
 }
 ```
@@ -194,49 +190,49 @@ export class NetworkError extends InfrastructureError {
 export class UserRepository extends BaseRepository<User> {
   async findById(id: string): Promise<User | null> {
     try {
-      const doc = await this.dataSource.get(`users/${id}`)
-      if (!doc) return null
-      return this.fromDocument(doc)
+      const doc = await this.dataSource.get(`users/${id}`);
+      if (!doc) return null;
+      return this.fromDocument(doc);
     } catch (error) {
       // インフラエラーをラップ
       if (error instanceof Error) {
         throw new DatabaseError(`Failed to fetch user: ${error.message}`, {
           cause: error,
-        })
+        });
       }
-      throw error
+      throw error;
     }
   }
 
   async create(data: CreateUserInput): Promise<User> {
     // バリデーション
-    const result = createUserSchema.safeParse(data)
+    const result = createUserSchema.safeParse(data);
     if (!result.success) {
       throw new ValidationError(
-        'Invalid user data',
-        result.error.flatten().fieldErrors
-      )
+        "Invalid user data",
+        result.error.flatten().fieldErrors,
+      );
     }
 
     // 重複チェック
-    const existing = await this.findByEmail(data.email)
+    const existing = await this.findByEmail(data.email);
     if (existing) {
-      throw new ConflictError(`User with email '${data.email}' already exists`)
+      throw new ConflictError(`User with email '${data.email}' already exists`);
     }
 
     try {
-      const id = this.generateId('user')
-      const now = this.now()
+      const id = this.generateId("user");
+      const now = this.now();
       const user: User = {
         ...result.data,
         id,
         createdAt: now,
         updatedAt: now,
-      }
-      await this.dataSource.set(`users/${id}`, this.toDocument(user))
-      return user
+      };
+      await this.dataSource.set(`users/${id}`, this.toDocument(user));
+      return user;
     } catch (error) {
-      throw new DatabaseError('Failed to create user', { cause: error })
+      throw new DatabaseError("Failed to create user", { cause: error });
     }
   }
 }
@@ -246,74 +242,74 @@ export class UserRepository extends BaseRepository<User> {
 
 ```typescript
 // apps/web/app/routes/users.$id.tsx
-import { json, redirect } from 'react-router'
-import type { LoaderFunctionArgs, ActionFunctionArgs } from 'react-router'
+import { json, redirect } from "react-router";
+import type { LoaderFunctionArgs, ActionFunctionArgs } from "react-router";
 import {
   NotFoundError,
   ValidationError,
   AuthorizationError,
-} from '@project/domains'
+} from "@project/domains";
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   try {
-    const user = await requireAuth(request)
-    const targetUser = await getRepositories().user.findById(params.id!)
+    const user = await requireAuth(request);
+    const targetUser = await getRepositories().user.findById(params.id!);
 
     if (!targetUser) {
-      throw new NotFoundError('User', params.id!)
+      throw new NotFoundError("User", params.id!);
     }
 
     // 権限チェック
     if (!canViewUser(user, targetUser)) {
-      throw new AuthorizationError('You cannot view this user')
+      throw new AuthorizationError("You cannot view this user");
     }
 
-    return json({ user: targetUser })
+    return json({ user: targetUser });
   } catch (error) {
     // ドメインエラーはそのままthrow（ErrorBoundaryで処理）
     if (error instanceof DomainError) {
-      throw error
+      throw error;
     }
 
     // 予期しないエラーをログ出力して汎用エラーをthrow
-    console.error('Unexpected error in user loader:', error)
-    throw new Response('Internal Server Error', { status: 500 })
+    console.error("Unexpected error in user loader:", error);
+    throw new Response("Internal Server Error", { status: 500 });
   }
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
   try {
-    const user = await requireAuth(request)
-    const formData = await request.formData()
+    const user = await requireAuth(request);
+    const formData = await request.formData();
 
-    const result = updateUserSchema.safeParse(Object.fromEntries(formData))
+    const result = updateUserSchema.safeParse(Object.fromEntries(formData));
     if (!result.success) {
       return json(
         { errors: result.error.flatten().fieldErrors },
-        { status: 400 }
-      )
+        { status: 400 },
+      );
     }
 
-    await getRepositories().user.update(params.id!, result.data)
-    return redirect(`/users/${params.id}`)
+    await getRepositories().user.update(params.id!, result.data);
+    return redirect(`/users/${params.id}`);
   } catch (error) {
     if (error instanceof ValidationError) {
       return json(
         { errors: error.fieldErrors, message: error.message },
-        { status: 400 }
-      )
+        { status: 400 },
+      );
     }
 
     if (error instanceof NotFoundError) {
-      return json({ message: error.message }, { status: 404 })
+      return json({ message: error.message }, { status: 404 });
     }
 
     if (error instanceof AuthorizationError) {
-      return json({ message: error.message }, { status: 403 })
+      return json({ message: error.message }, { status: 403 });
     }
 
-    console.error('Unexpected error in user action:', error)
-    return json({ message: 'An unexpected error occurred' }, { status: 500 })
+    console.error("Unexpected error in user action:", error);
+    return json({ message: "An unexpected error occurred" }, { status: 500 });
   }
 }
 ```
@@ -388,16 +384,16 @@ function getErrorMessage(status: number): string {
 // packages/utils/src/retry.ts
 
 interface RetryOptions {
-  maxAttempts?: number
-  initialDelayMs?: number
-  maxDelayMs?: number
-  backoffMultiplier?: number
-  retryableErrors?: Array<new (...args: any[]) => Error>
+  maxAttempts?: number;
+  initialDelayMs?: number;
+  maxDelayMs?: number;
+  backoffMultiplier?: number;
+  retryableErrors?: Array<new (...args: any[]) => Error>;
 }
 
 export async function withRetry<T>(
   fn: () => Promise<T>,
-  options: RetryOptions = {}
+  options: RetryOptions = {},
 ): Promise<T> {
   const {
     maxAttempts = 3,
@@ -405,47 +401,44 @@ export async function withRetry<T>(
     maxDelayMs = 10000,
     backoffMultiplier = 2,
     retryableErrors = [],
-  } = options
+  } = options;
 
-  let lastError: Error | undefined
-  let delay = initialDelayMs
+  let lastError: Error | undefined;
+  let delay = initialDelayMs;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
-      return await fn()
+      return await fn();
     } catch (error) {
-      lastError = error as Error
+      lastError = error as Error;
 
       // リトライ可能かチェック
       const isRetryable =
         retryableErrors.length === 0 ||
         retryableErrors.some((ErrorClass) => error instanceof ErrorClass) ||
-        (error instanceof InfrastructureError && error.isRetryable)
+        (error instanceof InfrastructureError && error.isRetryable);
 
       if (!isRetryable || attempt === maxAttempts) {
-        throw error
+        throw error;
       }
 
       console.warn(`Attempt ${attempt} failed, retrying in ${delay}ms...`, {
         error: lastError.message,
-      })
+      });
 
-      await sleep(delay)
-      delay = Math.min(delay * backoffMultiplier, maxDelayMs)
+      await sleep(delay);
+      delay = Math.min(delay * backoffMultiplier, maxDelayMs);
     }
   }
 
-  throw lastError
+  throw lastError;
 }
 
 // 使用例
-const user = await withRetry(
-  () => userRepository.findById(id),
-  {
-    maxAttempts: 3,
-    retryableErrors: [DatabaseError, NetworkError],
-  }
-)
+const user = await withRetry(() => userRepository.findById(id), {
+  maxAttempts: 3,
+  retryableErrors: [DatabaseError, NetworkError],
+});
 ```
 
 ## Result型パターン（オプション）
@@ -457,30 +450,30 @@ const user = await withRetry(
 
 type Result<T, E = Error> =
   | { success: true; data: T }
-  | { success: false; error: E }
+  | { success: false; error: E };
 
 function ok<T>(data: T): Result<T, never> {
-  return { success: true, data }
+  return { success: true, data };
 }
 
 function err<E>(error: E): Result<never, E> {
-  return { success: false, error }
+  return { success: false, error };
 }
 
 // 使用例
 async function findUser(id: string): Promise<Result<User, NotFoundError>> {
-  const user = await repository.findById(id)
+  const user = await repository.findById(id);
   if (!user) {
-    return err(new NotFoundError('User', id))
+    return err(new NotFoundError("User", id));
   }
-  return ok(user)
+  return ok(user);
 }
 
 // 呼び出し側
-const result = await findUser(id)
+const result = await findUser(id);
 if (!result.success) {
   // エラー処理
-  return json({ error: result.error.message }, { status: 404 })
+  return json({ error: result.error.message }, { status: 404 });
 }
 // result.data はUser型として利用可能
 ```
@@ -496,12 +489,12 @@ if (!result.success) {
 
 ```typescript
 // Bad
-"Error: ECONNREFUSED 127.0.0.1:5432"
-"NullPointerException at line 42"
+"Error: ECONNREFUSED 127.0.0.1:5432";
+"NullPointerException at line 42";
 
 // Good
-"データベースに接続できませんでした。しばらく待ってから再度お試しください。"
-"ユーザー情報の取得に失敗しました。ページを更新してください。"
+"データベースに接続できませんでした。しばらく待ってから再度お試しください。";
+"ユーザー情報の取得に失敗しました。ページを更新してください。";
 ```
 
 ### エラーメッセージマッピング
@@ -510,24 +503,25 @@ if (!result.success) {
 // apps/web/app/utils/error-messages.ts
 
 const errorMessages: Record<string, string> = {
-  VALIDATION_ERROR: '入力内容に誤りがあります。',
-  NOT_FOUND: 'お探しの情報が見つかりませんでした。',
-  AUTHENTICATION_ERROR: 'ログインが必要です。',
-  AUTHORIZATION_ERROR: 'この操作を行う権限がありません。',
-  CONFLICT: 'この操作は既に行われています。',
-  NETWORK_ERROR: 'ネットワークエラーが発生しました。接続を確認してください。',
-  DATABASE_ERROR: 'データの処理中にエラーが発生しました。',
-  DEFAULT: '予期しないエラーが発生しました。しばらく待ってから再度お試しください。',
-}
+  VALIDATION_ERROR: "入力内容に誤りがあります。",
+  NOT_FOUND: "お探しの情報が見つかりませんでした。",
+  AUTHENTICATION_ERROR: "ログインが必要です。",
+  AUTHORIZATION_ERROR: "この操作を行う権限がありません。",
+  CONFLICT: "この操作は既に行われています。",
+  NETWORK_ERROR: "ネットワークエラーが発生しました。接続を確認してください。",
+  DATABASE_ERROR: "データの処理中にエラーが発生しました。",
+  DEFAULT:
+    "予期しないエラーが発生しました。しばらく待ってから再度お試しください。",
+};
 
 export function getUserFriendlyMessage(error: unknown): string {
   if (error instanceof DomainError) {
-    return errorMessages[error.code] || error.message
+    return errorMessages[error.code] || error.message;
   }
   if (error instanceof InfrastructureError) {
-    return errorMessages.DATABASE_ERROR
+    return errorMessages.DATABASE_ERROR;
   }
-  return errorMessages.DEFAULT
+  return errorMessages.DEFAULT;
 }
 ```
 
@@ -597,27 +591,27 @@ function logError(error: unknown, context: Record<string, unknown> = {}) {
     stack: error instanceof Error ? error.stack : undefined,
     code: error instanceof DomainError ? error.code : undefined,
     ...context,
-  }
+  };
 
   // 本番環境ではログサービスに送信
-  if (process.env.NODE_ENV === 'production') {
+  if (process.env.NODE_ENV === "production") {
     // Sentry, DataDog, etc.
-    sendToLoggingService(errorInfo)
+    sendToLoggingService(errorInfo);
   } else {
-    console.error('Error:', errorInfo)
+    console.error("Error:", errorInfo);
   }
 }
 
 // 使用例
 try {
-  await riskyOperation()
+  await riskyOperation();
 } catch (error) {
   logError(error, {
-    operation: 'riskyOperation',
+    operation: "riskyOperation",
     userId: currentUser.id,
-    requestId: request.headers.get('x-request-id'),
-  })
-  throw error
+    requestId: request.headers.get("x-request-id"),
+  });
+  throw error;
 }
 ```
 

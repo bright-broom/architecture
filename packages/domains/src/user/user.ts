@@ -1,25 +1,25 @@
 /** ユーザーロール */
 export const USER_ROLES = {
-  ADMIN: 'admin',
-  USER: 'user',
-} as const
+  ADMIN: "admin",
+  USER: "user",
+} as const;
 
-export type UserRole = (typeof USER_ROLES)[keyof typeof USER_ROLES]
+export type UserRole = (typeof USER_ROLES)[keyof typeof USER_ROLES];
 
 /**
  * ユーザーエンティティ
  */
 export type User = {
   /** ユーザーID */
-  id: string
+  id: string;
   /** メールアドレス */
-  email: string
+  email: string;
   /** 表示名 */
-  name: string
+  name: string;
   /** ロール */
-  role: UserRole
+  role: UserRole;
   /** 作成日時 */
-  createdAt: Date
+  createdAt: Date;
   /** 更新日時 */
-  updatedAt: Date
-}
+  updatedAt: Date;
+};

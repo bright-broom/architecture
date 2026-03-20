@@ -178,17 +178,17 @@ function UserFilters() {
 ```typescript
 // loader でURL状態を読み取り
 export async function loader({ request }: LoaderFunctionArgs) {
-  const url = new URL(request.url)
-  const page = Number(url.searchParams.get('page')) || 1
-  const role = url.searchParams.get('role') || undefined
+  const url = new URL(request.url);
+  const page = Number(url.searchParams.get("page")) || 1;
+  const role = url.searchParams.get("role") || undefined;
 
   const result = await repositories.user.findPaginated({
     page,
     limit: 20,
     filters: { role },
-  })
+  });
 
-  return json({ users: result.items, pagination: result.pagination })
+  return json({ users: result.items, pagination: result.pagination });
 }
 ```
 
@@ -218,46 +218,46 @@ function UserCard({ user }: { user: User }) {
 ```typescript
 // 複雑なフォーム状態
 type FormState = {
-  values: Record<string, string>
-  errors: Record<string, string>
-  touched: Record<string, boolean>
-  isSubmitting: boolean
-}
+  values: Record<string, string>;
+  errors: Record<string, string>;
+  touched: Record<string, boolean>;
+  isSubmitting: boolean;
+};
 
 type FormAction =
-  | { type: 'SET_VALUE'; field: string; value: string }
-  | { type: 'SET_ERROR'; field: string; error: string }
-  | { type: 'SET_TOUCHED'; field: string }
-  | { type: 'SUBMIT_START' }
-  | { type: 'SUBMIT_END' }
-  | { type: 'RESET' }
+  | { type: "SET_VALUE"; field: string; value: string }
+  | { type: "SET_ERROR"; field: string; error: string }
+  | { type: "SET_TOUCHED"; field: string }
+  | { type: "SUBMIT_START" }
+  | { type: "SUBMIT_END" }
+  | { type: "RESET" };
 
 function formReducer(state: FormState, action: FormAction): FormState {
   switch (action.type) {
-    case 'SET_VALUE':
+    case "SET_VALUE":
       return {
         ...state,
         values: { ...state.values, [action.field]: action.value },
-        errors: { ...state.errors, [action.field]: '' },
-      }
-    case 'SET_ERROR':
+        errors: { ...state.errors, [action.field]: "" },
+      };
+    case "SET_ERROR":
       return {
         ...state,
         errors: { ...state.errors, [action.field]: action.error },
-      }
-    case 'SET_TOUCHED':
+      };
+    case "SET_TOUCHED":
       return {
         ...state,
         touched: { ...state.touched, [action.field]: true },
-      }
-    case 'SUBMIT_START':
-      return { ...state, isSubmitting: true }
-    case 'SUBMIT_END':
-      return { ...state, isSubmitting: false }
-    case 'RESET':
-      return initialState
+      };
+    case "SUBMIT_START":
+      return { ...state, isSubmitting: true };
+    case "SUBMIT_END":
+      return { ...state, isSubmitting: false };
+    case "RESET":
+      return initialState;
     default:
-      return state
+      return state;
   }
 }
 
@@ -267,17 +267,16 @@ function useForm(initialValues: Record<string, string>) {
     errors: {},
     touched: {},
     isSubmitting: false,
-  })
+  });
 
   return {
     ...state,
     setValue: (field: string, value: string) =>
-      dispatch({ type: 'SET_VALUE', field, value }),
+      dispatch({ type: "SET_VALUE", field, value }),
     setError: (field: string, error: string) =>
-      dispatch({ type: 'SET_ERROR', field, error }),
-    setTouched: (field: string) =>
-      dispatch({ type: 'SET_TOUCHED', field }),
-  }
+      dispatch({ type: "SET_ERROR", field, error }),
+    setTouched: (field: string) => dispatch({ type: "SET_TOUCHED", field }),
+  };
 }
 ```
 
@@ -431,11 +430,11 @@ function SearchPage() {
 
 ### 推奨ライブラリ（必要な場合）
 
-| ユースケース | ライブラリ |
-|-------------|-----------|
-| サーバー状態キャッシュ | TanStack Query |
-| 軽量グローバル状態 | Zustand |
-| 複雑なフォーム | React Hook Form |
+| ユースケース           | ライブラリ      |
+| ---------------------- | --------------- |
+| サーバー状態キャッシュ | TanStack Query  |
+| 軽量グローバル状態     | Zustand         |
+| 複雑なフォーム         | React Hook Form |
 
 ## チェックリスト
 

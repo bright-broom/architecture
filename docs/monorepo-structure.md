@@ -61,6 +61,7 @@ packages/config/
 ```
 
 **設計意図**:
+
 - 設定の重複を排除
 - 設定変更を一箇所で管理
 - 新規パッケージ追加時の設定工数を削減
@@ -86,6 +87,7 @@ packages/domains/
 ```
 
 **設計意図**:
+
 - UIやデータベースに依存しない
 - 単体テストが容易
 - 型定義とバリデーションを一箇所に集約
@@ -113,6 +115,7 @@ packages/repositories/
 ```
 
 **設計意図**:
+
 - データソースの差し替えを容易に
 - テスト時はMockAdapterを使用
 - 各RepositoryがZodでバリデーション
@@ -139,6 +142,7 @@ packages/ui-core/
 ```
 
 **設計意図**:
+
 - プロジェクト間で再利用可能
 - Tailwind CSS + CVAでスタイリング
 - アクセシビリティを考慮した実装
@@ -159,6 +163,7 @@ packages/ui-features/
 ```
 
 **設計意図**:
+
 - ドメインモデルを理解したコンポーネント
 - アプリ間で共通のUI/UXを提供
 
@@ -178,6 +183,7 @@ packages/utils/
 ```
 
 **設計意図**:
+
 - 純粋関数のみで構成
 - 外部依存は最小限（date-fns等）
 - 徹底的なテスト
@@ -210,10 +216,7 @@ graph TD
 ```json
 {
   "name": "my-project",
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
+  "workspaces": ["apps/*", "packages/*"],
   "scripts": {
     "dev": "node --experimental-strip-types scripts/dev.mts",
     "build": "node --experimental-strip-types scripts/build.mts",
@@ -268,4 +271,5 @@ graph TD
 ## 関連ドキュメント
 
 - [ビルドシステム](./build-system.md) - パッケージのビルド順序と設定
-- [アーキテクチャ](./architecture.md) - 全体設計思想
+- [設計思想](./architect.md) - 全体設計思想
+- [技術選定サマリー](./tech-decisions.md) - 技術選定一覧

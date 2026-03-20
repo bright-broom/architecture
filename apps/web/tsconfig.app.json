@@ -11,10 +11,7 @@
       "~/*": ["./app/*"]
     }
   },
-  "include": [
-    "app/**/*.ts",
-    "app/**/*.tsx"
-  ],
+  "include": ["app/**/*.ts", "app/**/*.tsx"],
   "exclude": ["node_modules", "build"],
   "references": [
     { "path": "../../packages/utils/tsconfig.build.json" },

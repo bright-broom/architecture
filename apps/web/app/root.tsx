@@ -1,9 +1,9 @@
-import { Links, Meta, Outlet, Scripts, ScrollRestoration } from 'react-router'
-import type { LinksFunction } from 'react-router'
+import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
+import type { LinksFunction } from "react-router";
 
-import './app.css'
+import "./app.css";
 
-export const links: LinksFunction = () => []
+export const links: LinksFunction = () => [];
 
 export const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -20,11 +20,11 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
         <Scripts />
       </body>
     </html>
-  )
-}
+  );
+};
 
 const App = () => {
-  return <Outlet />
-}
+  return <Outlet />;
+};
 
-export default App
+export default App;
