@@ -1,0 +1,24 @@
+{
+  "name": "my-project",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "postinstall": "node --experimental-strip-types scripts/postinstall.mts",
+    "dev": "node --experimental-strip-types scripts/dev.mts",
+    "build": "node --experimental-strip-types scripts/build.mts",
+    "typecheck": "node --experimental-strip-types scripts/typecheck.mts",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --check .",
+    "format:fix": "prettier --write .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "check-all": "npm run typecheck && npm run lint && npm run format"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
+  }
+}
