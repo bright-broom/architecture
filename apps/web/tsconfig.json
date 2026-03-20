@@ -1,0 +1,18 @@
+{
+  "extends": "../../packages/config/tsconfig/base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "lib": ["DOM", "DOM.Iterable", "ES2022"],
+    "types": ["node", "vite/client"],
+    "noEmit": true,
+    "paths": {
+      "~/*": ["./app/*"]
+    }
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    ".react-router/types/**/*"
+  ],
+  "exclude": ["node_modules", "build"]
+}
