@@ -1,0 +1,14 @@
+{
+  "name": "@my-project/config",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    "./tsconfig/base.json": "./tsconfig/base.json",
+    "./tsconfig/build.json": "./tsconfig/build.json",
+    "./eslint": "./eslint/base.js"
+  },
+  "devDependencies": {
+    "@tsconfig/recommended": "^1.0.0"
+  }
+}
